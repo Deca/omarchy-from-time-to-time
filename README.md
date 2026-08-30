@@ -125,7 +125,34 @@ Set `visualization.mode` to `cards` for a bounded alternative:
 
 `count` accepts `2`, `4`, or `6`. Fixed IDs keep their listed order. Enabled card metrics not fixed form the rotation pool; enough are selected without replacement each time the panel opens and remain in place while it is open. If too few metrics are available, the panel shows fewer cards rather than duplicates or filler.
 
-The initial card set is `lifeWeek`, `weekends`, `sunsets`, `christmas`, `heartbeats`, `breaths`, and `wakefulHours`. Rate-based values are estimates to the chosen horizon, not medical predictions. `familyMeals` is parsed for configuration compatibility but remains deferred and does not produce a card.
+The initial card set is `lifeWeek`, `weekends`, `sunsets`, `christmas`, `heartbeats`, `breaths`, `wakefulHours`, and `familyMeals`. Rate-based values are estimates to the chosen horizon, not medical predictions. `familyMeals` is disabled in the example because it describes a personal relationship; enable it only when its assumptions feel useful.
+
+#### Managing cards
+
+Each card has an `enabled` switch under `metrics`. Disabled cards cannot be fixed or selected for rotation. `visualization.cards.fixed` is an ordered list: those cards appear first and do not rotate. Every other enabled card is a candidate for the remaining slots. Change the list to choose a different balance, for example:
+
+```json
+{
+  "visualization": {
+    "mode": "cards",
+    "cards": {
+      "count": 4,
+      "fixed": ["lifeWeek", "familyMeals"]
+    }
+  },
+  "metrics": {
+    "familyMeals": {
+      "enabled": true,
+      "timesPerWeek": 3,
+      "untilDate": "2030-01-01"
+    }
+  }
+}
+```
+
+`familyMeals` estimates meals from now until `untilDate` at `timesPerWeek`. If `untilDate` is empty, it uses the life horizon; a date beyond the life horizon is capped there. This is a simple frequency estimate, not a promise that meals will happen. Use an explicit date when the relationship has a more meaningful shared horizon.
+
+Changes reload automatically. Open the panel after changing configuration, or press `R` while focused / middle-click the bar to reload. A bad mode, card count, unknown ID, disabled fixed ID, duplicate, or excess fixed ID is ignored and shown as a configuration issue in the panel. If fewer enabled cards exist than requested slots, fewer cards are shown.
 
 [`METRICS.md`](METRICS.md) remains a research catalogue and admission test for future ideas—not a menu of promised features.
 

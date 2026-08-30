@@ -4,7 +4,7 @@ var DAY_MS = 24 * 60 * 60 * 1000
 var WEEK_MS = 7 * DAY_MS
 var CARD_METRIC_IDS = [
   "lifeWeek", "weekends", "sunsets", "christmas",
-  "heartbeats", "breaths", "wakefulHours"
+  "heartbeats", "breaths", "wakefulHours", "familyMeals"
 ]
 var DEFAULT_FIXED_CARDS = ["lifeWeek", "weekends", "sunsets", "christmas"]
 
@@ -525,6 +525,20 @@ function cardViewModel(id, config, life, now) {
     return {
       id: id, kind: "number", headline: groupedInteger(life.remainingMinutes * awakeRatio / 60),
       label: "Estimated waking hours ahead", detail: "Allowing " + metrics.wakefulHours.sleepHoursPerDay + " hours of sleep per day."
+    }
+  }
+  if (id === "familyMeals") {
+    var mealsBoundary = parseLocalDate(metrics.familyMeals.untilDate) || life.boundary
+    if (mealsBoundary > life.boundary) mealsBoundary = life.boundary
+    var mealsRemainingMinutes = Math.max(0, (mealsBoundary.getTime() - now.getTime()) / 60000)
+    var meals = mealsRemainingMinutes / (WEEK_MS / 60000) * metrics.familyMeals.timesPerWeek
+    var mealHorizon = metrics.familyMeals.untilDate
+      ? " until " + metrics.familyMeals.untilDate
+      : " across this life horizon"
+    return {
+      id: id, kind: "number", headline: groupedInteger(meals),
+      label: "Estimated family meals ahead",
+      detail: "At " + metrics.familyMeals.timesPerWeek + " per week" + mealHorizon + "."
     }
   }
   return null

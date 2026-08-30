@@ -10,7 +10,7 @@ Awareness metrics turn an abstract life horizon into concrete opportunities. The
 
 ## Current implemented set
 
-Perspective uses five ideas, while Cards adds three explicitly estimated allocations:
+Perspective uses five ideas, while Cards adds four explicitly estimated allocations, including one relationship-oriented card:
 
 | Perspective | Required data | Interpretation |
 |---|---|---|
@@ -22,6 +22,7 @@ Perspective uses five ideas, while Cards adds three explicitly estimated allocat
 | Estimated heartbeats | Remaining horizon minutes and configured BPM | A rate-based estimate, never a medical prediction. |
 | Estimated breaths | Remaining horizon minutes and configured breaths/minute | A rate-based estimate, never a medical prediction. |
 | Estimated waking hours | Remaining horizon and configured sleep/day | A rough allocation rather than a promise of usable time. |
+| Family meals | Meals/week and optional shared horizon date | A simple estimate of recurring shared opportunities; it does not infer closeness or guarantee attendance. |
 
 Perspective gives one contextual idea prominence and reduces the others to a supporting sentence. Cards shows at most six enabled ideas, preserving configured fixed cards and selecting rotating cards only when the panel opens. Neither mode scores the user.
 
@@ -136,7 +137,8 @@ These describe available allocations rather than achievement.
 - A future metric brings only the minimum data needed for its chosen perspective or curated card.
 - No general-purpose formula language or arbitrary card builder.
 - Disabled metrics perform no calculation and occupy no space.
-- Relationship metrics remain deferred until they have an honest shared horizon and satisfactory copy.
+- `familyMeals` is the first relationship-oriented card; it requires an explicit frequency and supports an optional shared horizon date.
+- Additional relationship metrics remain deferred until they have an honest shared horizon and satisfactory copy.
 
 ## Display rules
 

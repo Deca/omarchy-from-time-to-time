@@ -37,6 +37,7 @@ assert.deepEqual(Array.from(config.visualization.cards.fixed), ["lifeWeek", "wee
 assert.equal(config.metrics.lifeWeek.enabled, true)
 assert.equal(config.metrics.heartbeats.beatsPerMinute, 70)
 assert.equal(config.metrics.familyMeals.enabled, false)
+assert.equal(context.selectedCardIds(config, 1).length, 0)
 
 const mondayNight = new Date(2026, 7, 24, 23, 30)
 const tuesdayMorning = new Date(2026, 7, 25, 6, 30)
@@ -134,6 +135,20 @@ assert(issuesConfig._issues.some(issue => issue.includes("Unknown card metric"))
 assert(issuesConfig._issues.some(issue => issue.includes("Disabled card metric")))
 assert(issuesConfig._issues.some(issue => issue.includes("Duplicate card metric")))
 
+const relationship = parse({
+  life: { birthDate: "1990-01-01", horizonYears: 90 },
+  visualization: { mode: "cards", cards: { count: 2, fixed: ["familyMeals"] } },
+  metrics: { familyMeals: { enabled: true, timesPerWeek: 3, untilDate: "2030-01-01" } }
+})
+const relationshipDeck = context.cardDeck(relationship, life, now, 2)
+assert.equal(relationshipDeck.length, 2)
+const familyMeals = relationshipDeck.find(card => card.id === "familyMeals")
+assert(familyMeals)
+assert.equal(familyMeals.kind, "number")
+assert.equal(familyMeals.label, "Estimated family meals ahead")
+assert.match(familyMeals.detail, /At 3 per week until 2030-01-01\./)
+assert(Number(familyMeals.headline.replace(/,/g, "")) > 500)
+
 const fourCards = parse({
   visualization: { mode: "cards", cards: { count: 4, fixed: [] } }
 })
@@ -153,7 +168,7 @@ assert.deepEqual(
 )
 
 const sparseMetrics = {}
-for (const id of ["lifeWeek", "weekends", "sunsets", "christmas", "heartbeats", "breaths", "wakefulHours"])
+for (const id of ["lifeWeek", "weekends", "sunsets", "christmas", "heartbeats", "breaths", "wakefulHours", "familyMeals"])
   sparseMetrics[id] = { enabled: id === "lifeWeek" }
 const sparse = parse({
   life: { birthDate: "1990-01-01" },
@@ -172,13 +187,16 @@ assert.match(lifeWeekCard.headline, /^Week [\d,]+$/)
 
 const clamped = parse({
   life: { birthDate: "1990-01-01" },
-  visualization: { mode: "cards", cards: { count: 6, fixed: [] } },
+  visualization: {
+    mode: "cards",
+    cards: { count: 6, fixed: ["heartbeats", "breaths", "wakefulHours"] }
+  },
   metrics: {
     lifeWeek: { enabled: false },
     heartbeats: { enabled: true, beatsPerMinute: 999 },
     breaths: { enabled: true, breathsPerMinute: 1 },
     wakefulHours: { enabled: true, sleepHoursPerDay: 30 },
-    familyMeals: { enabled: false, timesPerWeek: 99, untilDate: "bad-date" }
+    familyMeals: { enabled: true, timesPerWeek: 99, untilDate: "bad-date" }
   }
 })
 assert.equal(clamped.metrics.heartbeats.beatsPerMinute, 250)
@@ -187,6 +205,7 @@ assert.equal(clamped.metrics.wakefulHours.sleepHoursPerDay, 24)
 assert.equal(clamped.metrics.familyMeals.timesPerWeek, 50)
 assert.equal(clamped.metrics.familyMeals.untilDate, "")
 assert(clamped._issues.some(issue => issue.includes("familyMeals.untilDate")))
+assert.equal(clamped.metrics.familyMeals.enabled, true)
 const clampedDeck = context.cardDeck(clamped, life, now, 7)
 assert(clampedDeck.some(card => card.id === "heartbeats" && card.detail.includes("250")))
 assert(clampedDeck.some(card => card.id === "breaths" && card.detail.includes("4")))
