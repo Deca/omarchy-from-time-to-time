@@ -147,6 +147,7 @@ assert(familyMeals)
 assert.equal(familyMeals.kind, "number")
 assert.equal(familyMeals.label, "Estimated family meals ahead")
 assert.match(familyMeals.detail, /At 3 per week until 2030-01-01\./)
+assert.match(familyMeals.countdown, /^next estimate in /)
 assert(Number(familyMeals.headline.replace(/,/g, "")) > 500)
 
 const fourCards = parse({
@@ -209,7 +210,8 @@ assert.equal(clamped.metrics.familyMeals.enabled, true)
 const clampedDeck = context.cardDeck(clamped, life, now, 7)
 assert(clampedDeck.some(card => card.id === "heartbeats" && card.detail.includes("250")))
 assert(clampedDeck.some(card => card.id === "breaths" && card.detail.includes("4")))
-assert(clampedDeck.some(card => card.id === "wakefulHours" && card.headline === "0"))
+assert(clampedDeck.some(card => card.id === "wakefulHours" && card.headline === "0h 00m" && card.countdown === "no waking time allocated"))
+assert.equal(context.formatCountdown(90061000), "1d 01:01:01")
 
 assert.equal(context.cardDeck(cardsConfig, { valid: false }, now, 1).length, 0)
 assert.equal(context.countWeekdayUntil(new Date(2026, 7, 28), new Date(2026, 8, 7), 6), 2)

@@ -346,6 +346,31 @@ function formatDuration(minutes) {
   return rest + "m"
 }
 
+function formatHoursMinutes(minutes) {
+  var value = Math.max(0, Math.floor(Number(minutes) || 0))
+  return groupedInteger(Math.floor(value / 60)) + "h " + (value % 60 < 10 ? "0" : "") + value % 60 + "m"
+}
+
+function formatCountdown(milliseconds) {
+  var seconds = Math.max(0, Math.floor(Number(milliseconds) / 1000))
+  var days = Math.floor(seconds / 86400)
+  seconds -= days * 86400
+  var hours = Math.floor(seconds / 3600)
+  seconds -= hours * 3600
+  var minutes = Math.floor(seconds / 60)
+  seconds -= minutes * 60
+  function twoDigits(value) { return value < 10 ? "0" + value : String(value) }
+  return (days > 0 ? days + "d " : "")
+    + twoDigits(hours) + ":" + twoDigits(minutes) + ":" + twoDigits(seconds)
+}
+
+function nextRoundedDrop(millisecondsRemaining, unitsPerMillisecond) {
+  if (millisecondsRemaining <= 0 || unitsPerMillisecond <= 0) return 0
+  var units = millisecondsRemaining * unitsPerMillisecond
+  var threshold = Math.round(units) - 0.5
+  return Math.max(0, (units - threshold) / unitsPerMillisecond)
+}
+
 function parseLocalDate(value) {
   var match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || ""))
   if (!match) return null
@@ -474,15 +499,22 @@ function personalYearPosition(life, now) {
 
 function cardViewModel(id, config, life, now) {
   var metrics = config.metrics
+  var remainingMilliseconds = Math.max(0, life.boundary.getTime() - now.getTime())
   if (id === "lifeWeek") {
     var position = personalYearPosition(life, now)
     var week = Math.max(1, Math.min(life.totalWeeks, life.elapsedWeeks + 1))
+    var nextLifeWeek = new Date(
+      life.birthDate.getFullYear(), life.birthDate.getMonth(), life.birthDate.getDate() + (life.elapsedWeeks + 1) * 7,
+      0, 0, 0, 0)
     return {
       id: id,
       kind: "week-strip",
       headline: "Week " + groupedInteger(week),
       label: "of " + groupedInteger(life.totalWeeks) + " in this horizon",
       detail: "year " + position.year + " · week " + position.current,
+      countdown: nextLifeWeek < life.boundary
+        ? "next week in " + formatCountdown(nextLifeWeek.getTime() - now.getTime())
+        : "final week in this horizon",
       completedInYear: position.completed,
       currentInYear: position.current,
       totalInYear: position.total
@@ -490,47 +522,71 @@ function cardViewModel(id, config, life, now) {
   }
   if (id === "weekends") {
     var weekends = countWeekdayUntil(now, life.boundary, 6)
+    var nextSaturday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + ((6 - now.getDay() + 7) % 7 || 7), 0, 0, 0, 0)
     return {
       id: id, kind: "number", headline: groupedInteger(weekends), label: "Saturdays ahead",
-      detail: now.getDay() === 6 ? "One of them is already here." : "The next one is still ahead."
+      detail: now.getDay() === 6 ? "One of them is already here." : "The next one is still ahead.",
+      countdown: nextSaturday < life.boundary
+        ? "next one in " + formatCountdown(nextSaturday.getTime() - now.getTime())
+        : "no further occurrence"
     }
   }
   if (id === "sunsets") {
+    var nextDay = dayStart(now, 1)
     return {
       id: id, kind: "number", headline: groupedInteger(remainingCalendarDays(now, life.boundary)),
-      label: "Sunsets ahead", detail: "One calendar-day opportunity at a time."
+      label: "Sunsets ahead", detail: "One calendar-day opportunity at a time.",
+      countdown: nextDay < life.boundary
+        ? "next count in " + formatCountdown(nextDay.getTime() - now.getTime())
+        : "no further occurrence"
     }
   }
   if (id === "christmas") {
+    var christmases = countAnnualDateUntil(now, life.boundary, 11, 25)
+    var nextChristmas = new Date(now.getFullYear(), 11, 25, 0, 0, 0, 0)
+    if (nextChristmas <= now) nextChristmas = new Date(now.getFullYear() + 1, 11, 25, 0, 0, 0, 0)
     return {
-      id: id, kind: "number", headline: groupedInteger(countAnnualDateUntil(now, life.boundary, 11, 25)),
+      id: id, kind: "number", headline: groupedInteger(christmases),
       label: "Christmases in this horizon",
-      detail: now.getMonth() === 11 && now.getDate() === 25 ? "This is one of them." : "Each one is still ahead."
+      detail: now.getMonth() === 11 && now.getDate() === 25 ? "This is one of them." : "Each one is still ahead.",
+      countdown: nextChristmas < life.boundary
+        ? "next one in " + formatCountdown(nextChristmas.getTime() - now.getTime())
+        : "no further occurrence"
     }
   }
   if (id === "heartbeats") {
+    var heartbeatRate = metrics.heartbeats.beatsPerMinute / 60000
     return {
       id: id, kind: "number", headline: compactNumber(life.remainingMinutes * metrics.heartbeats.beatsPerMinute),
-      label: "Estimated heartbeats ahead", detail: "At " + metrics.heartbeats.beatsPerMinute + " beats per minute."
+      label: "Estimated heartbeats ahead", detail: "At " + metrics.heartbeats.beatsPerMinute + " beats per minute.",
+      countdown: "next estimate in " + formatCountdown(nextRoundedDrop(remainingMilliseconds, heartbeatRate))
     }
   }
   if (id === "breaths") {
+    var breathRate = metrics.breaths.breathsPerMinute / 60000
     return {
       id: id, kind: "number", headline: compactNumber(life.remainingMinutes * metrics.breaths.breathsPerMinute),
-      label: "Estimated breaths ahead", detail: "At " + metrics.breaths.breathsPerMinute + " breaths per minute."
+      label: "Estimated breaths ahead", detail: "At " + metrics.breaths.breathsPerMinute + " breaths per minute.",
+      countdown: "next estimate in " + formatCountdown(nextRoundedDrop(remainingMilliseconds, breathRate))
     }
   }
   if (id === "wakefulHours") {
     var awakeRatio = (24 - metrics.wakefulHours.sleepHoursPerDay) / 24
+    var wakefulMinutes = life.remainingMinutes * awakeRatio
+    var wakefulRate = awakeRatio / 60000
     return {
-      id: id, kind: "number", headline: groupedInteger(life.remainingMinutes * awakeRatio / 60),
-      label: "Estimated waking hours ahead", detail: "Allowing " + metrics.wakefulHours.sleepHoursPerDay + " hours of sleep per day."
+      id: id, kind: "number", headline: formatHoursMinutes(wakefulMinutes),
+      label: "Estimated waking time ahead", detail: "Allowing " + metrics.wakefulHours.sleepHoursPerDay + " hours of sleep per day.",
+      countdown: awakeRatio > 0
+        ? "next minute in " + formatCountdown(nextRoundedDrop(remainingMilliseconds, wakefulRate))
+        : "no waking time allocated"
     }
   }
   if (id === "familyMeals") {
     var mealsBoundary = parseLocalDate(metrics.familyMeals.untilDate) || life.boundary
     if (mealsBoundary > life.boundary) mealsBoundary = life.boundary
     var mealsRemainingMinutes = Math.max(0, (mealsBoundary.getTime() - now.getTime()) / 60000)
+    var mealsPerMillisecond = metrics.familyMeals.timesPerWeek / WEEK_MS
     var meals = mealsRemainingMinutes / (WEEK_MS / 60000) * metrics.familyMeals.timesPerWeek
     var mealHorizon = metrics.familyMeals.untilDate
       ? " until " + metrics.familyMeals.untilDate
@@ -538,7 +594,10 @@ function cardViewModel(id, config, life, now) {
     return {
       id: id, kind: "number", headline: groupedInteger(meals),
       label: "Estimated family meals ahead",
-      detail: "At " + metrics.familyMeals.timesPerWeek + " per week" + mealHorizon + "."
+      detail: "At " + metrics.familyMeals.timesPerWeek + " per week" + mealHorizon + ".",
+      countdown: metrics.familyMeals.timesPerWeek > 0
+        ? "next estimate in " + formatCountdown(nextRoundedDrop(mealsRemainingMinutes * 60000, mealsPerMillisecond))
+        : "no further estimate"
     }
   }
   return null

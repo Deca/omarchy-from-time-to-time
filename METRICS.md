@@ -145,7 +145,8 @@ These describe available allocations rather than achievement.
 - Render Perspective or Cards, never both.
 - Perspective gives one idea prominence and reduces other enabled contextual ideas to one supporting sentence.
 - Cards never exceeds six slots, duplicates metrics, invents filler, or reshuffles while open.
-- Treat copy, order, and whitespace as the interface.
+- Use a small live countdown when it makes a lower-level change legible; do not add motion for its own sake.
+- Treat copy, order, typography, and whitespace as the interface.
 - Keep the compact life bar visible above either visualization.
 - Use plain language, never motivational scoring, warnings, streaks, confetti, or mortality decoration.
 - Avoid constant motion; meaningful calendar, life-week, and panel-opening transitions provide punctuated salience.

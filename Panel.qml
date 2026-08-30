@@ -545,7 +545,7 @@ Panel {
                   id: cardDelegate
                   required property var modelData
                   width: (cardGrid.width - cardGrid.columnSpacing) / 2
-                  height: Style.space(108)
+                  height: Style.space(112)
                   radius: Style.space(5)
                   color: Qt.rgba(root.contentForeground.r, root.contentForeground.g, root.contentForeground.b, 0.07)
 
@@ -560,7 +560,7 @@ Panel {
                       color: Color.accent
                       elide: Text.ElideRight
                       font.family: root.contentFontFamily
-                      font.pixelSize: cardDelegate.modelData.headline.length > 14 ? Style.font.body : Style.font.title
+                      font.pixelSize: Style.font.display
                       font.bold: true
                     }
 
@@ -570,7 +570,7 @@ Panel {
                       color: root.contentForeground
                       elide: Text.ElideRight
                       font.family: root.contentFontFamily
-                      font.pixelSize: Style.font.caption
+                      font.pixelSize: Style.font.body
                       font.bold: true
                     }
 
@@ -603,6 +603,18 @@ Panel {
                       elide: Text.ElideRight
                       font.family: root.contentFontFamily
                       font.pixelSize: Style.font.caption
+                    }
+
+                    Text {
+                      visible: cardDelegate.modelData.countdown !== ""
+                      width: parent.width
+                      text: cardDelegate.modelData.countdown
+                      color: Color.accent
+                      opacity: 0.78
+                      elide: Text.ElideRight
+                      font.family: root.contentFontFamily
+                      font.pixelSize: Style.font.bodySmall
+                      font.bold: true
                     }
                   }
                 }

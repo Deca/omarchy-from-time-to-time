@@ -125,7 +125,7 @@ Set `visualization.mode` to `cards` for a bounded alternative:
 
 `count` accepts `2`, `4`, or `6`. Fixed IDs keep their listed order. Enabled card metrics not fixed form the rotation pool; enough are selected without replacement each time the panel opens and remain in place while it is open. If too few metrics are available, the panel shows fewer cards rather than duplicates or filler.
 
-The initial card set is `lifeWeek`, `weekends`, `sunsets`, `christmas`, `heartbeats`, `breaths`, `wakefulHours`, and `familyMeals`. Rate-based values are estimates to the chosen horizon, not medical predictions. `familyMeals` is disabled in the example because it describes a personal relationship; enable it only when its assumptions feel useful.
+The initial card set is `lifeWeek`, `weekends`, `sunsets`, `christmas`, `heartbeats`, `breaths`, `wakefulHours`, and `familyMeals`. Cards include a small live countdown to the next meaningful estimate or calendar change; values such as waking time retain a lower-level hours/minutes readout. Rate-based values are estimates to the chosen horizon, not medical predictions. `familyMeals` is disabled in the example because it describes a personal relationship; enable it only when its assumptions feel useful.
 
 #### Managing cards
 
