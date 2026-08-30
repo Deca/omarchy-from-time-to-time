@@ -10,7 +10,11 @@ vm.runInContext(
   context
 )
 
-const config = context.parseConfig(JSON.stringify({
+function parse(overrides = {}) {
+  return context.parseConfig(JSON.stringify(Object.assign({ schedule: [] }, overrides)))
+}
+
+const config = parse({
   life: { enabled: true, birthDate: "1990-01-01", horizonYears: 90 },
   metrics: {
     weekends: { enabled: true },
@@ -21,15 +25,18 @@ const config = context.parseConfig(JSON.stringify({
     { id: "sleep", label: "Sleep", start: "23:00", end: "07:00", days: ["mon"] },
     { id: "work", label: "Work", start: "09:00", end: "17:00", days: ["tue"] }
   ]
-}))
+})
 
 assert.equal(config._error, "")
 assert.equal(config.schedule.length, 2)
 assert.equal(config.life.birthDate, "1990-01-01")
 assert.equal(config.life.horizonYears, 90)
-assert.equal(config.metrics.weekends.enabled, true)
-assert.equal(config.metrics.sunsets.enabled, true)
-assert.equal(config.metrics.christmas.enabled, true)
+assert.equal(config.visualization.mode, "perspective")
+assert.equal(config.visualization.cards.count, 6)
+assert.deepEqual(Array.from(config.visualization.cards.fixed), ["lifeWeek", "weekends", "sunsets", "christmas"])
+assert.equal(config.metrics.lifeWeek.enabled, true)
+assert.equal(config.metrics.heartbeats.beatsPerMinute, 70)
+assert.equal(config.metrics.familyMeals.enabled, false)
 
 const mondayNight = new Date(2026, 7, 24, 23, 30)
 const tuesdayMorning = new Date(2026, 7, 25, 6, 30)
@@ -40,7 +47,6 @@ assert.equal(context.activeBlock(config.schedule, tuesdayMorning).id, "sleep")
 assert.equal(context.activeBlock(config.schedule, tuesdayNoon).id, "work")
 assert.equal(context.activeBlock(config.schedule, tuesdayNoon).remainingMinutes, 300)
 assert.equal(context.nextBlock(config.schedule, tuesdayMorning).id, "work")
-
 assert.deepEqual(
   Array.from(context.daySegments(config.schedule, tuesdayMorning), segment => [
     segment.id,
@@ -53,11 +59,13 @@ assert.deepEqual(
   ]
 )
 
-const life = context.lifeStats("1990-01-01", 90, new Date(2026, 5, 15))
+const now = new Date(2026, 5, 15, 12, 0)
+const life = context.lifeStats("1990-01-01", 90, now)
 assert.equal(life.valid, true)
 assert(life.elapsedWeeks > 1850 && life.elapsedWeeks < 1950)
 assert.equal(context.lifeStats("", 90, new Date()).valid, false)
 
+// Perspective behavior remains contextual and is the default mode.
 const ordinary = context.perspective(config, life, new Date(2026, 7, 28, 12, 0))
 assert.equal(ordinary.kind, "weekends")
 assert.match(ordinary.headline, /Saturdays ahead$/)
@@ -77,13 +85,116 @@ assert.equal(christmas.kind, "christmas")
 assert.equal(christmas.headline, "54 Christmases in this horizon")
 assert.equal(christmas.context, "This is one of them.")
 
-const rollover = context.perspective(config, life, new Date(2026, 7, 24, 8, 0))
+const rolloverDate = new Date(2026, 7, 24, 8, 0)
+const rollover = context.perspective(config, life, rolloverDate)
 assert.equal(rollover.kind, "week")
 assert.match(rollover.headline, /^Week [\d,]+ ended\.$/)
 assert.equal(rollover.context, "A new week begins.")
+const noRollover = parse({
+  life: { birthDate: "1990-01-01" },
+  metrics: { lifeWeek: { enabled: false } }
+})
+assert.notEqual(context.perspective(noRollover, context.lifeStats("1990-01-01", 90, rolloverDate), rolloverDate).kind, "week")
+
+// Card configuration normalization and selection invariants.
+const cardsConfig = parse({
+  life: { birthDate: "1990-01-01", horizonYears: 90 },
+  visualization: {
+    mode: "cards",
+    cards: { count: 6, fixed: ["christmas", "lifeWeek", "weekends", "sunsets"] }
+  }
+})
+assert.equal(cardsConfig.visualization.mode, "cards")
+const firstDeck = context.cardDeck(cardsConfig, life, now, 17)
+const repeatedDeck = context.cardDeck(cardsConfig, life, new Date(now.getTime() + 1000), 17)
+const otherDeck = context.cardDeck(cardsConfig, life, now, 23)
+const firstIds = Array.from(firstDeck, card => card.id)
+assert.equal(firstDeck.length, 6)
+assert.deepEqual(firstIds.slice(0, 4), ["christmas", "lifeWeek", "weekends", "sunsets"])
+assert.deepEqual(Array.from(repeatedDeck, card => card.id), firstIds)
+assert.notDeepEqual(Array.from(otherDeck, card => card.id), firstIds)
+assert.equal(new Set(firstIds).size, firstIds.length)
+
+const issuesConfig = parse({
+  visualization: {
+    mode: "dashboard",
+    cards: {
+      count: 5,
+      fixed: ["unknown", "sunsets", "sunsets", "breaths"]
+    }
+  },
+  metrics: { breaths: { enabled: false } }
+})
+assert.equal(issuesConfig.visualization.mode, "perspective")
+assert.equal(issuesConfig.visualization.cards.count, 6)
+assert.deepEqual(Array.from(issuesConfig.visualization.cards.fixed), ["sunsets"])
+assert(issuesConfig._issues.some(issue => issue.includes("visualization.mode")))
+assert(issuesConfig._issues.some(issue => issue.includes("cards.count")))
+assert(issuesConfig._issues.some(issue => issue.includes("Unknown card metric")))
+assert(issuesConfig._issues.some(issue => issue.includes("Disabled card metric")))
+assert(issuesConfig._issues.some(issue => issue.includes("Duplicate card metric")))
+
+const fourCards = parse({
+  visualization: { mode: "cards", cards: { count: 4, fixed: [] } }
+})
+assert.equal(context.cardDeck(fourCards, life, now, 5).length, 4)
+
+const excessFixed = parse({
+  visualization: {
+    mode: "cards",
+    cards: { count: 2, fixed: ["lifeWeek", "weekends", "sunsets", "christmas"] }
+  }
+})
+assert.deepEqual(Array.from(excessFixed.visualization.cards.fixed), ["lifeWeek", "weekends"])
+assert(excessFixed._issues.filter(issue => issue.includes("exceeds visualization.cards.count")).length === 2)
+assert.deepEqual(
+  Array.from(context.cardDeck(excessFixed, life, now, 1), card => card.id),
+  ["lifeWeek", "weekends"]
+)
+
+const sparseMetrics = {}
+for (const id of ["lifeWeek", "weekends", "sunsets", "christmas", "heartbeats", "breaths", "wakefulHours"])
+  sparseMetrics[id] = { enabled: id === "lifeWeek" }
+const sparse = parse({
+  life: { birthDate: "1990-01-01" },
+  visualization: { mode: "cards", cards: { count: 6, fixed: [] } },
+  metrics: sparseMetrics
+})
+assert.deepEqual(Array.from(context.cardDeck(sparse, life, now, 99), card => card.id), ["lifeWeek"])
+assert.deepEqual(Array.from(context.selectedCardIds(config, 1)), [])
+
+// Card models include bounded estimates and the original 52-mark week strip.
+const lifeWeekCard = firstDeck.find(card => card.id === "lifeWeek")
+assert.equal(lifeWeekCard.kind, "week-strip")
+assert.equal(lifeWeekCard.totalInYear, 52)
+assert.equal(lifeWeekCard.completedInYear, lifeWeekCard.currentInYear - 1)
+assert.match(lifeWeekCard.headline, /^Week [\d,]+$/)
+
+const clamped = parse({
+  life: { birthDate: "1990-01-01" },
+  visualization: { mode: "cards", cards: { count: 6, fixed: [] } },
+  metrics: {
+    lifeWeek: { enabled: false },
+    heartbeats: { enabled: true, beatsPerMinute: 999 },
+    breaths: { enabled: true, breathsPerMinute: 1 },
+    wakefulHours: { enabled: true, sleepHoursPerDay: 30 },
+    familyMeals: { enabled: false, timesPerWeek: 99, untilDate: "bad-date" }
+  }
+})
+assert.equal(clamped.metrics.heartbeats.beatsPerMinute, 250)
+assert.equal(clamped.metrics.breaths.breathsPerMinute, 4)
+assert.equal(clamped.metrics.wakefulHours.sleepHoursPerDay, 24)
+assert.equal(clamped.metrics.familyMeals.timesPerWeek, 50)
+assert.equal(clamped.metrics.familyMeals.untilDate, "")
+assert(clamped._issues.some(issue => issue.includes("familyMeals.untilDate")))
+const clampedDeck = context.cardDeck(clamped, life, now, 7)
+assert(clampedDeck.some(card => card.id === "heartbeats" && card.detail.includes("250")))
+assert(clampedDeck.some(card => card.id === "breaths" && card.detail.includes("4")))
+assert(clampedDeck.some(card => card.id === "wakefulHours" && card.headline === "0"))
+
+assert.equal(context.cardDeck(cardsConfig, { valid: false }, now, 1).length, 0)
 assert.equal(context.countWeekdayUntil(new Date(2026, 7, 28), new Date(2026, 8, 7), 6), 2)
 assert.equal(context.remainingCalendarDays(new Date(2026, 7, 28), new Date(2026, 8, 7)), 10)
-
 assert.equal(context.parseTime("09:30"), 570)
 assert.equal(context.parseTime("24:00"), -1)
 assert.equal(context.parseTime("9:30"), -1)

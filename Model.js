@@ -2,18 +2,32 @@ var DAY_NAMES = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"]
 var ALL_DAYS = [0, 1, 2, 3, 4, 5, 6]
 var DAY_MS = 24 * 60 * 60 * 1000
 var WEEK_MS = 7 * DAY_MS
+var CARD_METRIC_IDS = [
+  "lifeWeek", "weekends", "sunsets", "christmas",
+  "heartbeats", "breaths", "wakefulHours"
+]
+var DEFAULT_FIXED_CARDS = ["lifeWeek", "weekends", "sunsets", "christmas"]
 
 function defaultMetrics() {
   return {
+    lifeWeek: { enabled: true },
     weekends: { enabled: true },
     sunsets: { enabled: true },
-    christmas: { enabled: true }
+    christmas: { enabled: true },
+    heartbeats: { enabled: true, beatsPerMinute: 70 },
+    breaths: { enabled: true, breathsPerMinute: 14 },
+    wakefulHours: { enabled: true, sleepHoursPerDay: 8 },
+    familyMeals: { enabled: false, timesPerWeek: 3, untilDate: "" }
   }
 }
 
 function defaultConfig() {
   return {
     life: { enabled: true, birthDate: "", horizonYears: 90 },
+    visualization: {
+      mode: "perspective",
+      cards: { count: 6, fixed: DEFAULT_FIXED_CARDS.slice() }
+    },
     metrics: defaultMetrics(),
     alerts: {
       enabled: false,
@@ -133,9 +147,74 @@ function parseConfig(text) {
   config.alerts.quietHours.end = parseTime(rawQuiet.end) >= 0 ? rawQuiet.end : config.alerts.quietHours.end
 
   var rawMetrics = raw.metrics && typeof raw.metrics === "object" && !Array.isArray(raw.metrics) ? raw.metrics : {}
+  var metric
+
+  config.metrics.lifeWeek = normalizeMetric(rawMetrics.lifeWeek, config.metrics.lifeWeek).result
   config.metrics.weekends = normalizeMetric(rawMetrics.weekends, config.metrics.weekends).result
   config.metrics.sunsets = normalizeMetric(rawMetrics.sunsets, config.metrics.sunsets).result
   config.metrics.christmas = normalizeMetric(rawMetrics.christmas, config.metrics.christmas).result
+
+  metric = normalizeMetric(rawMetrics.heartbeats, config.metrics.heartbeats)
+  metric.result.beatsPerMinute = boundedNumber(metric.source.beatsPerMinute, metric.result.beatsPerMinute, 20, 250)
+  config.metrics.heartbeats = metric.result
+
+  metric = normalizeMetric(rawMetrics.breaths, config.metrics.breaths)
+  metric.result.breathsPerMinute = boundedNumber(metric.source.breathsPerMinute, metric.result.breathsPerMinute, 4, 60)
+  config.metrics.breaths = metric.result
+
+  metric = normalizeMetric(rawMetrics.wakefulHours, config.metrics.wakefulHours)
+  metric.result.sleepHoursPerDay = boundedNumber(metric.source.sleepHoursPerDay, metric.result.sleepHoursPerDay, 0, 24)
+  config.metrics.wakefulHours = metric.result
+
+  metric = normalizeMetric(rawMetrics.familyMeals, config.metrics.familyMeals)
+  metric.result.timesPerWeek = boundedNumber(metric.source.timesPerWeek, metric.result.timesPerWeek, 0, 50)
+  metric.result.untilDate = typeof metric.source.untilDate === "string" ? metric.source.untilDate : ""
+  if (metric.result.untilDate !== "" && !parseLocalDate(metric.result.untilDate)) {
+    config._issues.push("familyMeals.untilDate must use YYYY-MM-DD")
+    metric.result.untilDate = ""
+  }
+  config.metrics.familyMeals = metric.result
+
+  var rawVisualization = raw.visualization && typeof raw.visualization === "object" && !Array.isArray(raw.visualization)
+    ? raw.visualization : {}
+  if (rawVisualization.mode === undefined) config.visualization.mode = "perspective"
+  else if (rawVisualization.mode === "perspective" || rawVisualization.mode === "cards")
+    config.visualization.mode = rawVisualization.mode
+  else {
+    config.visualization.mode = "perspective"
+    config._issues.push("visualization.mode must be perspective or cards; using perspective")
+  }
+
+  var rawCards = rawVisualization.cards && typeof rawVisualization.cards === "object" && !Array.isArray(rawVisualization.cards)
+    ? rawVisualization.cards : {}
+  if (rawCards.count !== undefined) {
+    var requestedCount = Number(rawCards.count)
+    if (requestedCount === 2 || requestedCount === 4 || requestedCount === 6)
+      config.visualization.cards.count = requestedCount
+    else
+      config._issues.push("visualization.cards.count must be 2, 4, or 6; using 6")
+  }
+
+  var requestedFixed = rawCards.fixed === undefined ? DEFAULT_FIXED_CARDS : rawCards.fixed
+  config.visualization.cards.fixed = []
+  if (!Array.isArray(requestedFixed)) {
+    config._issues.push("visualization.cards.fixed must be an array; using no fixed cards")
+  } else {
+    for (var fixedIndex = 0; fixedIndex < requestedFixed.length; fixedIndex++) {
+      var fixedId = String(requestedFixed[fixedIndex])
+      if (CARD_METRIC_IDS.indexOf(fixedId) < 0) {
+        config._issues.push("Unknown card metric in visualization.cards.fixed: " + fixedId)
+      } else if (!config.metrics[fixedId].enabled) {
+        config._issues.push("Disabled card metric ignored in visualization.cards.fixed: " + fixedId)
+      } else if (config.visualization.cards.fixed.indexOf(fixedId) >= 0) {
+        config._issues.push("Duplicate card metric ignored in visualization.cards.fixed: " + fixedId)
+      } else if (config.visualization.cards.fixed.length >= config.visualization.cards.count) {
+        config._issues.push("Fixed card exceeds visualization.cards.count and was ignored: " + fixedId)
+      } else {
+        config.visualization.cards.fixed.push(fixedId)
+      }
+    }
+  }
 
   if (!Array.isArray(raw.schedule)) {
     config._error = "timeline.json must contain a schedule array"
@@ -333,6 +412,135 @@ function groupedInteger(value) {
   return text.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
 }
 
+function compactNumber(value) {
+  var number = Math.max(0, Number(value) || 0)
+  function compact(divisor, suffix) {
+    var scaled = number / divisor
+    var digits = scaled >= 100 ? 0 : (scaled >= 10 ? 1 : 2)
+    return scaled.toFixed(digits).replace(/(\.[0-9])0$/, "$1").replace(/\.0+$/, "") + suffix
+  }
+  if (number >= 1000000000) return compact(1000000000, "B")
+  if (number >= 1000000) return compact(1000000, "M")
+  if (number >= 100000) return compact(1000, "K")
+  return groupedInteger(number)
+}
+
+function seededShuffle(values, seed) {
+  var result = values.slice()
+  var state = (Math.floor(Number(seed) || 0) ^ 0x9e3779b9) >>> 0
+  function random() {
+    state += 0x6d2b79f5
+    var value = state
+    value = Math.imul(value ^ value >>> 15, value | 1)
+    value ^= value + Math.imul(value ^ value >>> 7, value | 61)
+    return ((value ^ value >>> 14) >>> 0) / 4294967296
+  }
+  for (var i = result.length - 1; i > 0; i--) {
+    var index = Math.floor(random() * (i + 1))
+    var current = result[i]
+    result[i] = result[index]
+    result[index] = current
+  }
+  return result
+}
+
+function selectedCardIds(config, openingSeed) {
+  if (!config || !config.visualization || config.visualization.mode !== "cards") return []
+  var fixed = config.visualization.cards.fixed.slice()
+  var candidates = []
+  for (var i = 0; i < CARD_METRIC_IDS.length; i++) {
+    var id = CARD_METRIC_IDS[i]
+    if (config.metrics[id].enabled && fixed.indexOf(id) < 0) candidates.push(id)
+  }
+  var dynamicCount = Math.max(0, config.visualization.cards.count - fixed.length)
+  return fixed.concat(seededShuffle(candidates, openingSeed).slice(0, dynamicCount))
+}
+
+function personalYearPosition(life, now) {
+  var age = now.getFullYear() - life.birthDate.getFullYear()
+  var anniversary = new Date(
+    life.birthDate.getFullYear() + age, life.birthDate.getMonth(), life.birthDate.getDate(), 0, 0, 0, 0)
+  if (anniversary > now) {
+    age--
+    anniversary = new Date(
+      life.birthDate.getFullYear() + age, life.birthDate.getMonth(), life.birthDate.getDate(), 0, 0, 0, 0)
+  }
+  var next = new Date(
+    life.birthDate.getFullYear() + age + 1, life.birthDate.getMonth(), life.birthDate.getDate(), 0, 0, 0, 0)
+  var progress = Math.max(0, Math.min(0.999999, (now.getTime() - anniversary.getTime()) / (next.getTime() - anniversary.getTime())))
+  var current = Math.floor(progress * 52) + 1
+  return { year: age + 1, completed: current - 1, current: current, total: 52 }
+}
+
+function cardViewModel(id, config, life, now) {
+  var metrics = config.metrics
+  if (id === "lifeWeek") {
+    var position = personalYearPosition(life, now)
+    var week = Math.max(1, Math.min(life.totalWeeks, life.elapsedWeeks + 1))
+    return {
+      id: id,
+      kind: "week-strip",
+      headline: "Week " + groupedInteger(week),
+      label: "of " + groupedInteger(life.totalWeeks) + " in this horizon",
+      detail: "year " + position.year + " · week " + position.current,
+      completedInYear: position.completed,
+      currentInYear: position.current,
+      totalInYear: position.total
+    }
+  }
+  if (id === "weekends") {
+    var weekends = countWeekdayUntil(now, life.boundary, 6)
+    return {
+      id: id, kind: "number", headline: groupedInteger(weekends), label: "Saturdays ahead",
+      detail: now.getDay() === 6 ? "One of them is already here." : "The next one is still ahead."
+    }
+  }
+  if (id === "sunsets") {
+    return {
+      id: id, kind: "number", headline: groupedInteger(remainingCalendarDays(now, life.boundary)),
+      label: "Sunsets ahead", detail: "One calendar-day opportunity at a time."
+    }
+  }
+  if (id === "christmas") {
+    return {
+      id: id, kind: "number", headline: groupedInteger(countAnnualDateUntil(now, life.boundary, 11, 25)),
+      label: "Christmases in this horizon",
+      detail: now.getMonth() === 11 && now.getDate() === 25 ? "This is one of them." : "Each one is still ahead."
+    }
+  }
+  if (id === "heartbeats") {
+    return {
+      id: id, kind: "number", headline: compactNumber(life.remainingMinutes * metrics.heartbeats.beatsPerMinute),
+      label: "Estimated heartbeats ahead", detail: "At " + metrics.heartbeats.beatsPerMinute + " beats per minute."
+    }
+  }
+  if (id === "breaths") {
+    return {
+      id: id, kind: "number", headline: compactNumber(life.remainingMinutes * metrics.breaths.breathsPerMinute),
+      label: "Estimated breaths ahead", detail: "At " + metrics.breaths.breathsPerMinute + " breaths per minute."
+    }
+  }
+  if (id === "wakefulHours") {
+    var awakeRatio = (24 - metrics.wakefulHours.sleepHoursPerDay) / 24
+    return {
+      id: id, kind: "number", headline: groupedInteger(life.remainingMinutes * awakeRatio / 60),
+      label: "Estimated waking hours ahead", detail: "Allowing " + metrics.wakefulHours.sleepHoursPerDay + " hours of sleep per day."
+    }
+  }
+  return null
+}
+
+function cardDeck(config, life, now, openingSeed) {
+  if (!life || !life.valid || !config || !config.metrics) return []
+  var ids = selectedCardIds(config, openingSeed)
+  var cards = []
+  for (var i = 0; i < ids.length; i++) {
+    var card = cardViewModel(ids[i], config, life, now)
+    if (card) cards.push(card)
+  }
+  return cards
+}
+
 function metricSummary(metrics, counts, excluded) {
   var parts = []
   if (metrics.weekends.enabled && excluded !== "weekends")
@@ -368,7 +576,7 @@ function perspective(config, life, now) {
     }
   }
 
-  if (isLifeWeekRollover) {
+  if (metrics.lifeWeek.enabled && isLifeWeekRollover) {
     return {
       visible: true,
       kind: "week",
