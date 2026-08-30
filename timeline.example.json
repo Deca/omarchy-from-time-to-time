@@ -1,0 +1,82 @@
+{
+  "_note": "Copy this file to ~/.config/omarchy/timeline.json and customize it. Remaining values use the chosen horizon; biological and frequency metrics are estimates.",
+  "life": {
+    "enabled": true,
+    "birthDate": "1990-01-01",
+    "horizonYears": 90
+  },
+  "alerts": {
+    "enabled": false,
+    "quietHours": {
+      "enabled": false,
+      "start": "22:00",
+      "end": "07:00"
+    },
+    "startSound": "/usr/share/sounds/freedesktop/stereo/service-login.oga",
+    "endSound": "/usr/share/sounds/freedesktop/stereo/complete.oga"
+  },
+  "metrics": {
+    "heartbeats": {
+      "enabled": true,
+      "beatsPerMinute": 70
+    },
+    "breaths": {
+      "enabled": true,
+      "breathsPerMinute": 14
+    },
+    "wakefulHours": {
+      "enabled": true,
+      "sleepHoursPerDay": 8
+    },
+    "weekends": {
+      "enabled": true
+    },
+    "sunsets": {
+      "enabled": true
+    },
+    "christmas": {
+      "enabled": true,
+      "celebrationHoursPerYear": 12,
+      "showHours": true
+    },
+    "familyMeals": {
+      "enabled": false,
+      "timesPerWeek": 3,
+      "untilDate": ""
+    }
+  },
+  "schedule": [
+    {
+      "id": "sleep",
+      "label": "Sleep",
+      "start": "23:00",
+      "end": "07:00",
+      "color": "#6272a4",
+      "days": ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+    },
+    {
+      "id": "work",
+      "label": "Work",
+      "start": "09:00",
+      "end": "17:00",
+      "color": "#8be9fd",
+      "days": ["mon", "tue", "wed", "thu", "fri"]
+    },
+    {
+      "id": "exercise",
+      "label": "Exercise",
+      "start": "18:00",
+      "end": "19:00",
+      "color": "#50fa7b",
+      "days": ["mon", "wed", "fri"]
+    },
+    {
+      "id": "personal",
+      "label": "Personal",
+      "start": "20:00",
+      "end": "22:30",
+      "color": "#ffb86c",
+      "days": ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+    }
+  ]
+}

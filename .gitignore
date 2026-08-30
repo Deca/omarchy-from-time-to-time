@@ -1,0 +1,52 @@
+# Private development notes and unpublished plans
+.dev/
+private/
+notes/
+*.private.md
+
+# Personal plugin configuration (the live file belongs one directory above)
+/timeline.json
+/timeline.local.json
+/config.local.json
+*.local.json
+
+# Credentials and authentication material
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*.token
+credentials/
+secrets/
+
+# Future wearable/health data and exports
+/timeline-health.json
+health-data/
+exports/
+*.csv
+*.fit
+*.gpx
+*.tcx
+
+# Runtime state, logs, and temporary files
+*.log
+*.lock
+*.state
+*.tmp
+.cache/
+tmp/
+
+# Editor and OS metadata
+.DS_Store
+.idea/
+.vscode/
+*~
+*.swp
+
+# Dependency/build output if tooling is added later
+node_modules/
+dist/
+build/
+coverage/

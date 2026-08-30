@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "io.github.deca.from-time-to-time",
+  "name": "From Time to Time",
+  "version": "0.3.0",
+  "author": "Deca",
+  "license": "MIT",
+  "description": "See the current period, the shape of today, and the time of a life",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "From Time to Time",
+    "description": "See now, today, and a lifetime in one calm timeline",
+    "category": "Time",
+    "allowMultiple": false,
+    "defaultSection": "center"
+  }
+}
