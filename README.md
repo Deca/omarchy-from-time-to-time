@@ -11,8 +11,9 @@ It is an awareness instrument—not a task manager, productivity score, or medic
 - Compact current-period label, progress, and remaining time
 - Full 24-hour schedule with overnight and weekday-aware periods
 - Compact life-horizon progress
-- One context-aware perspective drawn from Saturdays, sunsets, Christmases, and the weekly life rollover
-- Quiet ambient awareness with occasional, meaningful changes rather than a permanent metrics dashboard
+- Perspective mode: one context-aware reflection drawn from Saturdays, sunsets, Christmases, and the weekly life rollover
+- Cards mode: a bounded two-column deck with fixed and per-opening rotating metrics
+- An original 52-mark personal-year strip that makes the current life-week tangible
 - Optional start/end sounds with quiet hours
 - Startup, suspend/resume, and multi-monitor alert safeguards
 - Local JSON configuration with no account, telemetry, or network access
@@ -104,11 +105,29 @@ Quiet hours may cross midnight. Each period plays alerts by default. Set `"sound
 
 Alerts suppress cues on startup and configuration reload, stale cues after suspend or clock jumps, and duplicate playback from multiple monitors.
 
-### Perspective
+### Visualization modes
 
-The product intentionally chooses one featured perspective instead of presenting a dashboard of equally weighted counters. Context decides what deserves prominence: Christmas Day, the start of a personal life-week, Saturday, and local evening can each change the copy.
+Perspective is the default. It chooses one featured reflection rather than presenting a dashboard of equally weighted counters. Context decides what deserves prominence: Christmas Day, the start of a personal life-week, Saturday, and local evening can each change the copy.
 
-Saturdays, sunsets, and Christmases can be individually disabled, but the default set is deliberately small. [`METRICS.md`](METRICS.md) is a research catalogue and admission test for future ideas—not a menu of promised features.
+Set `visualization.mode` to `cards` for a bounded alternative:
+
+```json
+{
+  "visualization": {
+    "mode": "cards",
+    "cards": {
+      "count": 6,
+      "fixed": ["lifeWeek", "weekends", "sunsets", "christmas"]
+    }
+  }
+}
+```
+
+`count` accepts `2`, `4`, or `6`. Fixed IDs keep their listed order. Enabled card metrics not fixed form the rotation pool; enough are selected without replacement each time the panel opens and remain in place while it is open. If too few metrics are available, the panel shows fewer cards rather than duplicates or filler.
+
+The initial card set is `lifeWeek`, `weekends`, `sunsets`, `christmas`, `heartbeats`, `breaths`, and `wakefulHours`. Rate-based values are estimates to the chosen horizon, not medical predictions. `familyMeals` is parsed for configuration compatibility but remains deferred and does not produce a card.
+
+[`METRICS.md`](METRICS.md) remains a research catalogue and admission test for future ideas—not a menu of promised features.
 
 ## Interactions
 

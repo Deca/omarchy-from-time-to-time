@@ -4,13 +4,13 @@
 
 This is a research catalogue, not the product's settings menu or feature checklist. Its purpose is to preserve potentially meaningful ideas while allowing the interface to say no to almost all of them.
 
-From Time to Time deliberately selects one featured perspective at a time. New metrics should replace or deepen that perspective—not accumulate as equally weighted dashboard cards.
+From Time to Time defaults to one featured perspective at a time. Its alternative Cards mode is deliberately bounded to six slots and a curated set; this catalogue must not turn into an unbounded dashboard backlog.
 
 Awareness metrics turn an abstract life horizon into concrete opportunities. They are prompts for attention, not predictions, diagnoses, productivity scores, or promises about the future.
 
-## Current perspective set
+## Current implemented set
 
-The default product uses only five ideas:
+Perspective uses five ideas, while Cards adds three explicitly estimated allocations:
 
 | Perspective | Required data | Interpretation |
 |---|---|---|
@@ -19,8 +19,11 @@ The default product uses only five ideas:
 | Saturdays | Life horizon | Calendar Saturdays remaining; the current Saturday is included. |
 | Sunsets | Life horizon | One opportunity per remaining calendar day; not an astronomical or weather-aware forecast. |
 | Christmases | Life horizon | December 25 occurrences in the horizon; optional because the observance is not universal. |
+| Estimated heartbeats | Remaining horizon minutes and configured BPM | A rate-based estimate, never a medical prediction. |
+| Estimated breaths | Remaining horizon minutes and configured breaths/minute | A rate-based estimate, never a medical prediction. |
+| Estimated waking hours | Remaining horizon and configured sleep/day | A rough allocation rather than a promise of usable time. |
 
-The panel gives one of these contextual prominence and reduces the others to a supporting sentence. Christmas Day, the start of a personal life-week, Saturday, and local evening can change what deserves emphasis. This variation is situational rather than random or gamified.
+Perspective gives one contextual idea prominence and reduces the others to a supporting sentence. Cards shows at most six enabled ideas, preserving configured fixed cards and selecting rotating cards only when the panel opens. Neither mode scores the user.
 
 ## Admission test for a future metric
 
@@ -128,18 +131,19 @@ These describe available allocations rather than achievement.
 
 ## Configuration design rules
 
-- The current three recurring-world metrics may be disabled, but there is no metric picker or ordering system.
-- A future metric brings only the minimum data needed for its chosen perspective.
-- Rates, frequencies, and personal deadlines remain research concerns until a candidate passes the admission test.
-- No general-purpose formula language, arbitrary card builder, or second configuration model.
+- Global enablement is separate from Cards placement.
+- Cards supports only 2, 4, or 6 slots; fixed IDs provide explicit order and remaining enabled IDs form the rotation pool.
+- A future metric brings only the minimum data needed for its chosen perspective or curated card.
+- No general-purpose formula language or arbitrary card builder.
 - Disabled metrics perform no calculation and occupy no space.
+- Relationship metrics remain deferred until they have an honest shared horizon and satisfactory copy.
 
 ## Display rules
 
-- Show one featured perspective, never a grid of equally weighted counters.
-- Reduce other enabled ideas to one supporting sentence.
-- Let context choose prominence instead of reserving permanent positions.
+- Render Perspective or Cards, never both.
+- Perspective gives one idea prominence and reduces other enabled contextual ideas to one supporting sentence.
+- Cards never exceeds six slots, duplicates metrics, invents filler, or reshuffles while open.
 - Treat copy, order, and whitespace as the interface.
-- Keep the compact life bar visible above the perspective.
+- Keep the compact life bar visible above either visualization.
 - Use plain language, never motivational scoring, warnings, streaks, confetti, or mortality decoration.
-- Avoid constant motion; meaningful calendar and life-week transitions provide punctuated salience.
+- Avoid constant motion; meaningful calendar, life-week, and panel-opening transitions provide punctuated salience.
