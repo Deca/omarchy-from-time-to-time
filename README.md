@@ -4,6 +4,8 @@ A calm Omarchy bar timeline for seeing the current period, the shape of today, a
 
 It is an awareness instrument—not a task manager, productivity score, or medical prediction.
 
+![From Time to Time panel](preview.png)
+
 ## Features
 
 - Compact current-period label, progress, and remaining time
