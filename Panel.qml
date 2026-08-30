@@ -23,7 +23,7 @@ Panel {
   readonly property var nextBlock: Model.nextBlock(config.schedule, now)
   readonly property var todaySegments: Model.daySegments(config.schedule, now)
   readonly property var life: Model.lifeStats(config.life.birthDate, config.life.horizonYears, now)
-  readonly property var awarenessMetrics: Model.awarenessMetrics(config, life, now)
+  readonly property var perspective: Model.perspective(config, life, now)
   readonly property real nowMinute: Model.minuteOfDay(now)
 
   readonly property string barText: {
@@ -454,12 +454,12 @@ Panel {
           }
 
           Column {
-            visible: root.config.life.enabled && root.life.valid && root.awarenessMetrics.length > 0
+            visible: root.config.life.enabled && root.life.valid && root.perspective.visible
             width: parent.width
-            spacing: Style.space(9)
+            spacing: Style.space(10)
 
             Text {
-              text: "REMAINING TO THE CHOSEN HORIZON"
+              text: "PERSPECTIVE"
               color: root.contentForeground
               font.family: root.contentFontFamily
               font.pixelSize: Style.font.bodySmall
@@ -467,69 +467,45 @@ Panel {
               font.letterSpacing: 1
             }
 
-            Grid {
-              id: metricsGrid
+            Text {
               width: parent.width
-              columns: 2
-              columnSpacing: Style.space(9)
-              rowSpacing: Style.space(9)
+              text: root.perspective.headline
+              color: Color.accent
+              horizontalAlignment: Text.AlignHCenter
+              wrapMode: Text.WordWrap
+              font.family: root.contentFontFamily
+              font.pixelSize: Style.font.title * 1.25
+              font.bold: true
+            }
 
-              Repeater {
-                model: root.awarenessMetrics
+            Text {
+              width: parent.width
+              text: root.perspective.context
+              color: root.contentForeground
+              horizontalAlignment: Text.AlignHCenter
+              wrapMode: Text.WordWrap
+              font.family: root.contentFontFamily
+              font.pixelSize: Style.font.body
+            }
 
-                Rectangle {
-                  required property var modelData
-                  width: (metricsGrid.width - metricsGrid.columnSpacing) / 2
-                  height: Style.space(91)
-                  radius: Style.space(5)
-                  color: Qt.rgba(root.contentForeground.r, root.contentForeground.g, root.contentForeground.b, 0.07)
+            Rectangle {
+              anchors.horizontalCenter: parent.horizontalCenter
+              width: Style.space(48)
+              height: 1
+              color: root.contentForeground
+              opacity: 0.18
+            }
 
-                  Column {
-                    anchors.fill: parent
-                    anchors.margins: Style.space(9)
-                    spacing: Style.space(1)
-
-                    Text {
-                      width: parent.width
-                      text: modelData.value
-                      color: Color.accent
-                      font.family: root.contentFontFamily
-                      font.pixelSize: modelData.value.length > 12 ? Style.font.body : Style.font.title
-                      font.bold: true
-                    }
-
-                    Text {
-                      width: parent.width
-                      text: modelData.label
-                      color: root.contentForeground
-                      font.family: root.contentFontFamily
-                      font.pixelSize: Style.font.caption
-                      font.bold: true
-                      font.letterSpacing: 0.8
-                    }
-
-                    Text {
-                      width: parent.width
-                      text: modelData.detail
-                      color: root.contentForeground
-                      opacity: 0.5
-                      elide: Text.ElideRight
-                      font.family: root.contentFontFamily
-                      font.pixelSize: Style.font.caption
-                    }
-
-                    Text {
-                      width: parent.width
-                      text: modelData.countdown
-                      color: Color.accent
-                      opacity: 0.72
-                      elide: Text.ElideRight
-                      font.family: root.contentFontFamily
-                      font.pixelSize: Style.font.caption
-                    }
-                  }
-                }
-              }
+            Text {
+              visible: root.perspective.supporting !== ""
+              width: parent.width
+              text: root.perspective.supporting
+              color: root.contentForeground
+              opacity: 0.55
+              horizontalAlignment: Text.AlignHCenter
+              wrapMode: Text.WordWrap
+              font.family: root.contentFontFamily
+              font.pixelSize: Style.font.bodySmall
             }
           }
 

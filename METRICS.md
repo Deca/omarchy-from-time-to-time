@@ -1,28 +1,38 @@
 # Awareness Metrics Catalogue
 
-## Meaning and limits
+## Purpose of this document
+
+This is a research catalogue, not the product's settings menu or feature checklist. Its purpose is to preserve potentially meaningful ideas while allowing the interface to say no to almost all of them.
+
+From Time to Time deliberately selects one featured perspective at a time. New metrics should replace or deepen that perspective—not accumulate as equally weighted dashboard cards.
 
 Awareness metrics turn an abstract life horizon into concrete opportunities. They are prompts for attention, not predictions, diagnoses, productivity scores, or promises about the future.
 
-Every remaining metric ends at one of:
+## Current perspective set
 
-- the configured life horizon;
-- an explicit date, such as retirement or a child's eighteenth birthday;
-- a shared horizon supplied for a relationship metric.
+The default product uses only five ideas:
 
-The interface must expose assumptions such as `70/min` or `3/week`. It must never present an estimated biological rate as an exact medical measurement.
+| Perspective | Required data | Interpretation |
+|---|---|---|
+| Life progress | Birth date and chosen horizon | A compact frame, explicitly not a death prediction. |
+| Weekly rollover | Birth date | Once each personal life-week changes, acknowledge the week that ended and the one beginning. |
+| Saturdays | Life horizon | Calendar Saturdays remaining; the current Saturday is included. |
+| Sunsets | Life horizon | One opportunity per remaining calendar day; not an astronomical or weather-aware forecast. |
+| Christmases | Life horizon | December 25 occurrences in the horizon; optional because the observance is not universal. |
 
-## Implemented metrics
+The panel gives one of these contextual prominence and reduces the others to a supporting sentence. Christmas Day, the start of a personal life-week, Saturday, and local evening can change what deserves emphasis. This variation is situational rather than random or gamified.
 
-| Metric | Required data | Calculation | Accuracy and interpretation |
-|---|---|---|---|
-| Heartbeats | Average beats per minute | Remaining minutes × BPM | Rate estimate, not a lifespan or cardiac prediction. A wearable-derived long-term average may improve the estimate. |
-| Breaths | Average breaths per minute | Remaining minutes × breaths/minute | Rate estimate; sleep, exercise, health, and age all change respiratory rate. |
-| Wakeful hours | Average sleep hours per day | Remaining hours × `(24 − sleepHours) / 24` | Long-term allocation estimate. |
-| Weekends | None beyond the life horizon | Saturdays between today and the horizon | Calendar count. The current weekend is included when applicable. |
-| Sunsets | None beyond the life horizon | Calendar days through the horizon | Opportunity estimate; does not account for location, weather, or whether a sunset is visible. |
-| Christmases | Celebration hours per occurrence | December 25 occurrences before the horizon; occurrences × celebration hours | Calendar count plus a personal time estimate. It can represent another annual observance by a future configurable annual-event metric. |
-| Family meals | Meals per week; optional shared end date | Remaining weeks × meals/week | Personal frequency estimate. `untilDate` can constrain it to a realistic shared horizon. |
+## Admission test for a future metric
+
+A candidate should enter the product only when it:
+
+1. changes what deserves attention in a recognizable context;
+2. can be expressed in one strong sentence;
+3. uses honest, minimal assumptions;
+4. is more affecting than one of the current choices;
+5. does not require a general-purpose formula or dashboard system.
+
+Metrics not meeting that bar remain research below.
 
 ## Potential biological and embodied metrics
 
@@ -118,19 +128,18 @@ These describe available allocations rather than achievement.
 
 ## Configuration design rules
 
-- Every metric has `enabled`.
-- Rates and frequencies are explicit and bounded to plausible input ranges.
-- Personal deadline metrics can set `untilDate` in `YYYY-MM-DD` format.
-- An empty `untilDate` falls back to the life horizon.
-- Metric order should eventually be user-configurable without creating a second schema.
+- The current three recurring-world metrics may be disabled, but there is no metric picker or ordering system.
+- A future metric brings only the minimum data needed for its chosen perspective.
+- Rates, frequencies, and personal deadlines remain research concerns until a candidate passes the admission test.
+- No general-purpose formula language, arbitrary card builder, or second configuration model.
 - Disabled metrics perform no calculation and occupy no space.
-- The first implementation uses built-in metric types rather than a premature general-purpose formula language.
 
 ## Display rules
 
-- Use at most two columns of compact counters.
-- Show the assumption beneath estimated values: `@ 70/min`, `3 meals/week`, etc.
-- Use plain labels, never motivational scoring or warnings.
-- Keep the compact life bar visible above the counters.
-- Avoid animation that competes for attention; countdown values update naturally with the second clock.
-- If enabled metrics make the panel too tall, prefer user-controlled ordering or paging over returning to a long dashboard.
+- Show one featured perspective, never a grid of equally weighted counters.
+- Reduce other enabled ideas to one supporting sentence.
+- Let context choose prominence instead of reserving permanent positions.
+- Treat copy, order, and whitespace as the interface.
+- Keep the compact life bar visible above the perspective.
+- Use plain language, never motivational scoring, warnings, streaks, confetti, or mortality decoration.
+- Avoid constant motion; meaningful calendar and life-week transitions provide punctuated salience.

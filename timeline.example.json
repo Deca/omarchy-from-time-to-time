@@ -1,5 +1,5 @@
 {
-  "_note": "Copy this file to ~/.config/omarchy/timeline.json and customize it. Remaining values use the chosen horizon; biological and frequency metrics are estimates.",
+  "_note": "Copy this file to ~/.config/omarchy/timeline.json and customize it. The perspective uses a deliberately small set of life-horizon metrics.",
   "life": {
     "enabled": true,
     "birthDate": "1990-01-01",
@@ -16,18 +16,6 @@
     "endSound": "/usr/share/sounds/freedesktop/stereo/complete.oga"
   },
   "metrics": {
-    "heartbeats": {
-      "enabled": true,
-      "beatsPerMinute": 70
-    },
-    "breaths": {
-      "enabled": true,
-      "breathsPerMinute": 14
-    },
-    "wakefulHours": {
-      "enabled": true,
-      "sleepHoursPerDay": 8
-    },
     "weekends": {
       "enabled": true
     },
@@ -35,14 +23,7 @@
       "enabled": true
     },
     "christmas": {
-      "enabled": true,
-      "celebrationHoursPerYear": 12,
-      "showHours": true
-    },
-    "familyMeals": {
-      "enabled": false,
-      "timesPerWeek": 3,
-      "untilDate": ""
+      "enabled": true
     }
   },
   "schedule": [

@@ -11,8 +11,8 @@ It is an awareness instrument—not a task manager, productivity score, or medic
 - Compact current-period label, progress, and remaining time
 - Full 24-hour schedule with overnight and weekday-aware periods
 - Compact life-horizon progress
-- Configurable awareness metrics such as heartbeats, breaths, wakeful hours, weekends, sunsets, annual celebrations, and family meals
-- Live metric countdowns
+- One context-aware perspective drawn from Saturdays, sunsets, Christmases, and the weekly life rollover
+- Quiet ambient awareness with occasional, meaningful changes rather than a permanent metrics dashboard
 - Optional start/end sounds with quiet hours
 - Startup, suspend/resume, and multi-monitor alert safeguards
 - Local JSON configuration with no account, telemetry, or network access
@@ -104,11 +104,11 @@ Quiet hours may cross midnight. Each period plays alerts by default. Set `"sound
 
 Alerts suppress cues on startup and configuration reload, stale cues after suspend or clock jumps, and duplicate playback from multiple monitors.
 
-### Awareness metrics
+### Perspective
 
-Every metric has an `enabled` switch and explicit assumptions. Rate-based and frequency-based values are estimates to the chosen horizon, not medical predictions.
+The product intentionally chooses one featured perspective instead of presenting a dashboard of equally weighted counters. Context decides what deserves prominence: Christmas Day, the start of a personal life-week, Saturday, and local evening can each change the copy.
 
-See [`METRICS.md`](METRICS.md) for implemented metrics, potential future metrics, required inputs, and interpretation limits.
+Saturdays, sunsets, and Christmases can be individually disabled, but the default set is deliberately small. [`METRICS.md`](METRICS.md) is a research catalogue and admission test for future ideas—not a menu of promised features.
 
 ## Interactions
 

@@ -5,13 +5,9 @@ var WEEK_MS = 7 * DAY_MS
 
 function defaultMetrics() {
   return {
-    heartbeats: { enabled: true, beatsPerMinute: 70 },
-    breaths: { enabled: true, breathsPerMinute: 14 },
-    wakefulHours: { enabled: true, sleepHoursPerDay: 8 },
     weekends: { enabled: true },
     sunsets: { enabled: true },
-    christmas: { enabled: true, celebrationHoursPerYear: 12, showHours: true },
-    familyMeals: { enabled: false, timesPerWeek: 3, untilDate: "" }
+    christmas: { enabled: true }
   }
 }
 
@@ -137,39 +133,9 @@ function parseConfig(text) {
   config.alerts.quietHours.end = parseTime(rawQuiet.end) >= 0 ? rawQuiet.end : config.alerts.quietHours.end
 
   var rawMetrics = raw.metrics && typeof raw.metrics === "object" && !Array.isArray(raw.metrics) ? raw.metrics : {}
-  var metric
-
-  metric = normalizeMetric(rawMetrics.heartbeats, config.metrics.heartbeats)
-  metric.result.beatsPerMinute = boundedNumber(metric.source.beatsPerMinute, metric.result.beatsPerMinute, 20, 250)
-  config.metrics.heartbeats = metric.result
-
-  metric = normalizeMetric(rawMetrics.breaths, config.metrics.breaths)
-  metric.result.breathsPerMinute = boundedNumber(metric.source.breathsPerMinute, metric.result.breathsPerMinute, 4, 60)
-  config.metrics.breaths = metric.result
-
-  metric = normalizeMetric(rawMetrics.wakefulHours, config.metrics.wakefulHours)
-  metric.result.sleepHoursPerDay = boundedNumber(metric.source.sleepHoursPerDay, metric.result.sleepHoursPerDay, 0, 24)
-  config.metrics.wakefulHours = metric.result
-
-  metric = normalizeMetric(rawMetrics.weekends, config.metrics.weekends)
-  config.metrics.weekends = metric.result
-
-  metric = normalizeMetric(rawMetrics.sunsets, config.metrics.sunsets)
-  config.metrics.sunsets = metric.result
-
-  metric = normalizeMetric(rawMetrics.christmas, config.metrics.christmas)
-  metric.result.celebrationHoursPerYear = boundedNumber(metric.source.celebrationHoursPerYear, metric.result.celebrationHoursPerYear, 0, 168)
-  metric.result.showHours = metric.source.showHours === undefined ? metric.result.showHours : metric.source.showHours === true
-  config.metrics.christmas = metric.result
-
-  metric = normalizeMetric(rawMetrics.familyMeals, config.metrics.familyMeals)
-  metric.result.timesPerWeek = boundedNumber(metric.source.timesPerWeek, metric.result.timesPerWeek, 0, 50)
-  metric.result.untilDate = typeof metric.source.untilDate === "string" ? metric.source.untilDate : ""
-  if (metric.result.untilDate !== "" && !parseLocalDate(metric.result.untilDate)) {
-    config._issues.push("familyMeals.untilDate must use YYYY-MM-DD")
-    metric.result.untilDate = ""
-  }
-  config.metrics.familyMeals = metric.result
+  config.metrics.weekends = normalizeMetric(rawMetrics.weekends, config.metrics.weekends).result
+  config.metrics.sunsets = normalizeMetric(rawMetrics.sunsets, config.metrics.sunsets).result
+  config.metrics.christmas = normalizeMetric(rawMetrics.christmas, config.metrics.christmas).result
 
   if (!Array.isArray(raw.schedule)) {
     config._error = "timeline.json must contain a schedule array"
@@ -367,152 +333,102 @@ function groupedInteger(value) {
   return text.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
 }
 
-function compactNumber(value) {
-  var number = Math.max(0, Number(value) || 0)
-  function compact(divisor, suffix) {
-    var scaled = number / divisor
-    var digits = scaled >= 100 ? 0 : (scaled >= 10 ? 1 : 2)
-    return scaled.toFixed(digits).replace(/(\.[0-9])0$/, "$1").replace(/\.0+$/, "") + suffix
-  }
-  if (number >= 1000000000) return compact(1000000000, "B")
-  if (number >= 1000000) return compact(1000000, "M")
-  if (number >= 100000) return compact(1000, "K")
-  return groupedInteger(number)
+function metricSummary(metrics, counts, excluded) {
+  var parts = []
+  if (metrics.weekends.enabled && excluded !== "weekends")
+    parts.push(groupedInteger(counts.weekends) + " Saturdays")
+  if (metrics.sunsets.enabled && excluded !== "sunsets")
+    parts.push(groupedInteger(counts.sunsets) + " sunsets")
+  if (metrics.christmas.enabled && excluded !== "christmas")
+    parts.push(groupedInteger(counts.christmas) + " Christmases")
+  return parts.join(" · ")
 }
 
-function twoDigits(value) {
-  return value < 10 ? "0" + value : String(value)
-}
+function perspective(config, life, now) {
+  if (!life || !life.valid || !config || !config.metrics)
+    return { visible: false, kind: "", headline: "", context: "", supporting: "" }
 
-function formatCountdown(milliseconds) {
-  var seconds = Math.max(0, Math.floor(milliseconds / 1000))
-  var days = Math.floor(seconds / 86400)
-  seconds -= days * 86400
-  var hours = Math.floor(seconds / 3600)
-  seconds -= hours * 3600
-  var minutes = Math.floor(seconds / 60)
-  seconds -= minutes * 60
-  return (days > 0 ? days + "d " : "")
-    + twoDigits(hours) + ":" + twoDigits(minutes) + ":" + twoDigits(seconds)
-}
-
-function formatHoursMinutes(minutes) {
-  var wholeMinutes = Math.max(0, Math.floor(minutes))
-  return groupedInteger(Math.floor(wholeMinutes / 60)) + "h " + twoDigits(wholeMinutes % 60) + "m"
-}
-
-function nextWeekday(now, weekday) {
-  var offset = (weekday - now.getDay() + 7) % 7
-  if (offset === 0) offset = 7
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset, 0, 0, 0, 0)
-}
-
-function nextAnnualDate(now, month, day) {
-  var candidate = new Date(now.getFullYear(), month, day, 0, 0, 0, 0)
-  if (candidate <= now) candidate = new Date(now.getFullYear() + 1, month, day, 0, 0, 0, 0)
-  return candidate
-}
-
-function nextRoundedDrop(millisecondsRemaining, unitsPerMillisecond) {
-  if (millisecondsRemaining <= 0 || unitsPerMillisecond <= 0) return 0
-  var units = millisecondsRemaining * unitsPerMillisecond
-  var threshold = Math.round(units) - 0.5
-  return Math.max(0, (units - threshold) / unitsPerMillisecond)
-}
-
-function awarenessMetrics(config, life, now) {
-  if (!life || !life.valid || !config || !config.metrics) return []
-
-  var result = []
   var metrics = config.metrics
-  var remainingMinutes = life.remainingMinutes
+  var counts = {
+    weekends: countWeekdayUntil(now, life.boundary, 6),
+    sunsets: remainingCalendarDays(now, life.boundary),
+    christmas: countAnnualDateUntil(now, life.boundary, 11, 25)
+  }
+  var daysLived = calendarDayNumber(now) - calendarDayNumber(life.birthDate)
+  var isChristmas = now.getMonth() === 11 && now.getDate() === 25
+  var isLifeWeekRollover = daysLived > 0 && daysLived % 7 === 0 && now.getHours() < 12
 
-  if (metrics.heartbeats.enabled) {
-    result.push({
-      id: "heartbeats",
-      label: "HEARTBEATS",
-      value: groupedInteger(remainingMinutes * metrics.heartbeats.beatsPerMinute),
-      detail: "estimated @ " + metrics.heartbeats.beatsPerMinute + "/min",
-      countdown: "↓ counting every second"
-    })
+  if (metrics.christmas.enabled && isChristmas) {
+    return {
+      visible: true,
+      kind: "christmas",
+      headline: groupedInteger(counts.christmas) + " Christmases in this horizon",
+      context: "This is one of them.",
+      supporting: metricSummary(metrics, counts, "christmas")
+    }
   }
 
-  if (metrics.breaths.enabled) {
-    result.push({
-      id: "breaths",
-      label: "BREATHS",
-      value: groupedInteger(remainingMinutes * metrics.breaths.breathsPerMinute),
-      detail: "estimated @ " + metrics.breaths.breathsPerMinute + "/min",
-      countdown: "↓ counting live"
-    })
+  if (isLifeWeekRollover) {
+    return {
+      visible: true,
+      kind: "week",
+      headline: "Week " + groupedInteger(Math.floor(daysLived / 7)) + " ended.",
+      context: "A new week begins.",
+      supporting: metricSummary(metrics, counts, "")
+    }
   }
 
-  if (metrics.wakefulHours.enabled) {
-    var awakeRatio = (24 - metrics.wakefulHours.sleepHoursPerDay) / 24
-    result.push({
-      id: "wakefulHours",
-      label: "WAKEFUL HOURS",
-      value: formatHoursMinutes(remainingMinutes * awakeRatio),
-      detail: metrics.wakefulHours.sleepHoursPerDay + "h sleep/day",
-      countdown: "↓ allocated time remaining"
-    })
+  if (metrics.weekends.enabled && now.getDay() === 6) {
+    return {
+      visible: true,
+      kind: "weekends",
+      headline: groupedInteger(counts.weekends) + " Saturdays ahead",
+      context: "One of them is already here.",
+      supporting: metricSummary(metrics, counts, "weekends")
+    }
+  }
+
+  if (metrics.sunsets.enabled && now.getHours() >= 16) {
+    return {
+      visible: true,
+      kind: "sunsets",
+      headline: groupedInteger(counts.sunsets) + " sunsets ahead",
+      context: "One of them belongs to today.",
+      supporting: metricSummary(metrics, counts, "sunsets")
+    }
   }
 
   if (metrics.weekends.enabled) {
-    var comingSaturday = nextWeekday(now, 6)
-    result.push({
-      id: "weekends",
-      label: "WEEKENDS",
-      value: groupedInteger(countWeekdayUntil(now, life.boundary, 6)),
-      detail: "calendar Saturdays",
-      countdown: comingSaturday < life.boundary
-        ? "next in " + formatCountdown(comingSaturday.getTime() - now.getTime())
-        : "no further occurrence"
-    })
+    var daysUntilSaturday = (6 - now.getDay() + 7) % 7
+    if (daysUntilSaturday === 0) daysUntilSaturday = 7
+    return {
+      visible: true,
+      kind: "weekends",
+      headline: groupedInteger(counts.weekends) + " Saturdays ahead",
+      context: "The next one is in " + daysUntilSaturday + (daysUntilSaturday === 1 ? " day." : " days."),
+      supporting: metricSummary(metrics, counts, "weekends")
+    }
   }
 
   if (metrics.sunsets.enabled) {
-    var nextDay = dayStart(now, 1)
-    result.push({
-      id: "sunsets",
-      label: "SUNSETS",
-      value: groupedInteger(remainingCalendarDays(now, life.boundary)),
-      detail: "one opportunity/day",
-      countdown: "next count in " + formatCountdown(nextDay.getTime() - now.getTime())
-    })
+    return {
+      visible: true,
+      kind: "sunsets",
+      headline: groupedInteger(counts.sunsets) + " sunsets ahead",
+      context: "One of them belongs to today.",
+      supporting: metricSummary(metrics, counts, "sunsets")
+    }
   }
 
   if (metrics.christmas.enabled) {
-    var christmases = countAnnualDateUntil(now, life.boundary, 11, 25)
-    var christmasDetail = "through " + life.boundary.getFullYear()
-    var nextChristmas = nextAnnualDate(now, 11, 25)
-    if (metrics.christmas.showHours)
-      christmasDetail = groupedInteger(christmases * metrics.christmas.celebrationHoursPerYear) + " celebration hours"
-    result.push({
-      id: "christmas",
-      label: "CHRISTMASES",
-      value: groupedInteger(christmases),
-      detail: christmasDetail,
-      countdown: nextChristmas < life.boundary
-        ? "next in " + formatCountdown(nextChristmas.getTime() - now.getTime())
-        : "no further occurrence"
-    })
+    return {
+      visible: true,
+      kind: "christmas",
+      headline: groupedInteger(counts.christmas) + " Christmases in this horizon",
+      context: "Each one is still ahead.",
+      supporting: ""
+    }
   }
 
-  if (metrics.familyMeals.enabled) {
-    var mealsBoundary = parseLocalDate(metrics.familyMeals.untilDate) || life.boundary
-    var mealsMilliseconds = Math.max(0, mealsBoundary.getTime() - now.getTime())
-    var mealsPerMillisecond = metrics.familyMeals.timesPerWeek / WEEK_MS
-    result.push({
-      id: "familyMeals",
-      label: "FAMILY MEALS",
-      value: groupedInteger(mealsMilliseconds * mealsPerMillisecond),
-      detail: metrics.familyMeals.timesPerWeek + "/week"
-        + (metrics.familyMeals.untilDate ? " until " + metrics.familyMeals.untilDate : ""),
-      countdown: "next estimate drop in "
-        + formatCountdown(nextRoundedDrop(mealsMilliseconds, mealsPerMillisecond))
-    })
-  }
-
-  return result
+  return { visible: false, kind: "", headline: "", context: "", supporting: "" }
 }

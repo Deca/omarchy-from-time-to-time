@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "io.github.deca.from-time-to-time",
   "name": "From Time to Time",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "author": "Deca",
   "license": "MIT",
   "description": "See the current period, the shape of today, and the time of a life",
