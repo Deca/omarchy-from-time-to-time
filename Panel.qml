@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import Quickshell
 import Quickshell.Io
@@ -18,12 +20,15 @@ Panel {
   property date now: new Date()
   property var config: Model.defaultConfig()
   property bool configMissing: false
+  property double openingSeed: 0
 
   readonly property var activeBlock: Model.activeBlock(config.schedule, now)
   readonly property var nextBlock: Model.nextBlock(config.schedule, now)
   readonly property var todaySegments: Model.daySegments(config.schedule, now)
   readonly property var life: Model.lifeStats(config.life.birthDate, config.life.horizonYears, now)
+  readonly property string visualizationMode: config.visualization.mode
   readonly property var perspective: Model.perspective(config, life, now)
+  readonly property var cardDeck: Model.cardDeck(config, life, now, openingSeed)
   readonly property real nowMinute: Model.minuteOfDay(now)
 
   readonly property string barText: {
@@ -129,6 +134,7 @@ Panel {
   }
 
   function open() {
+    if (!opened) openingSeed = Date.now()
     refresh()
     controller.show()
   }
@@ -454,7 +460,8 @@ Panel {
           }
 
           Column {
-            visible: root.config.life.enabled && root.life.valid && root.perspective.visible
+            visible: root.visualizationMode === "perspective"
+              && root.config.life.enabled && root.life.valid && root.perspective.visible
             width: parent.width
             spacing: Style.space(10)
 
@@ -506,6 +513,100 @@ Panel {
               wrapMode: Text.WordWrap
               font.family: root.contentFontFamily
               font.pixelSize: Style.font.bodySmall
+            }
+          }
+
+          Column {
+            visible: root.visualizationMode === "cards"
+              && root.config.life.enabled && root.life.valid && root.cardDeck.length > 0
+            width: parent.width
+            spacing: Style.space(9)
+
+            Text {
+              text: "CARDS"
+              color: root.contentForeground
+              font.family: root.contentFontFamily
+              font.pixelSize: Style.font.bodySmall
+              font.bold: true
+              font.letterSpacing: 1
+            }
+
+            Grid {
+              id: cardGrid
+              width: parent.width
+              columns: 2
+              columnSpacing: Style.space(9)
+              rowSpacing: Style.space(9)
+
+              Repeater {
+                model: root.cardDeck
+
+                Rectangle {
+                  id: cardDelegate
+                  required property var modelData
+                  width: (cardGrid.width - cardGrid.columnSpacing) / 2
+                  height: Style.space(108)
+                  radius: Style.space(5)
+                  color: Qt.rgba(root.contentForeground.r, root.contentForeground.g, root.contentForeground.b, 0.07)
+
+                  Column {
+                    anchors.fill: parent
+                    anchors.margins: Style.space(9)
+                    spacing: Style.space(3)
+
+                    Text {
+                      width: parent.width
+                      text: cardDelegate.modelData.headline
+                      color: Color.accent
+                      elide: Text.ElideRight
+                      font.family: root.contentFontFamily
+                      font.pixelSize: cardDelegate.modelData.headline.length > 14 ? Style.font.body : Style.font.title
+                      font.bold: true
+                    }
+
+                    Text {
+                      width: parent.width
+                      text: cardDelegate.modelData.label
+                      color: root.contentForeground
+                      elide: Text.ElideRight
+                      font.family: root.contentFontFamily
+                      font.pixelSize: Style.font.caption
+                      font.bold: true
+                    }
+
+                    Row {
+                      id: weekStrip
+                      visible: cardDelegate.modelData.kind === "week-strip"
+                      width: parent.width
+                      spacing: 1
+
+                      Repeater {
+                        model: cardDelegate.modelData.kind === "week-strip" ? cardDelegate.modelData.totalInYear : 0
+
+                        Rectangle {
+                          required property int index
+                          width: (weekStrip.width - 51 * weekStrip.spacing) / 52
+                          height: Style.space(13)
+                          radius: Math.min(width / 2, Style.space(1))
+                          color: index + 1 === cardDelegate.modelData.currentInYear ? Color.accent : root.contentForeground
+                          opacity: index + 1 === cardDelegate.modelData.currentInYear
+                            ? 1 : (index < cardDelegate.modelData.completedInYear ? 0.42 : 0.12)
+                        }
+                      }
+                    }
+
+                    Text {
+                      width: parent.width
+                      text: cardDelegate.modelData.detail
+                      color: root.contentForeground
+                      opacity: 0.55
+                      elide: Text.ElideRight
+                      font.family: root.contentFontFamily
+                      font.pixelSize: Style.font.caption
+                    }
+                  }
+                }
+              }
             }
           }
 
