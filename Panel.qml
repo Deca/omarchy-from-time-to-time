@@ -547,7 +547,21 @@ Panel {
                   width: (cardGrid.width - cardGrid.columnSpacing) / 2
                   height: Style.space(112)
                   radius: Style.space(5)
-                  color: Qt.rgba(root.contentForeground.r, root.contentForeground.g, root.contentForeground.b, 0.07)
+                  color: cardDelegate.modelData.rotating
+                    ? Qt.rgba(Color.accent.r, Color.accent.g, Color.accent.b, 0.24)
+                    : Qt.rgba(root.contentForeground.r, root.contentForeground.g, root.contentForeground.b, 0.07)
+                  border.width: cardDelegate.modelData.rotating ? 1 : 0
+                  border.color: Qt.rgba(Color.accent.r, Color.accent.g, Color.accent.b, 0.78)
+
+                  Rectangle {
+                    visible: cardDelegate.modelData.rotating
+                    anchors.left: parent.left
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                    width: Style.space(3)
+                    radius: cardDelegate.radius
+                    color: Color.accent
+                  }
 
                   Column {
                     anchors.fill: parent

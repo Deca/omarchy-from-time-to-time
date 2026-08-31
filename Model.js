@@ -6,46 +6,34 @@ var YEAR_MS = 365.2425 * DAY_MS
 var RECURRING_CARD_SPECS = [
   { id: "parentVisits", rateKey: "timesPerYear", defaultRate: 6, periodMs: YEAR_MS,
     label: "Estimated visits with parents ahead", reflection: "Presence cannot be saved for later.", orientation: "social" },
-  { id: "parentCalls", rateKey: "timesPerWeek", defaultRate: 1, periodMs: WEEK_MS,
-    label: "Estimated calls with parents ahead", reflection: "A voice can shorten a long distance.", orientation: "social" },
   { id: "partnerEvenings", rateKey: "timesPerWeek", defaultRate: 2, periodMs: WEEK_MS,
     label: "Estimated evenings together ahead", reflection: "Shared lives grow on ordinary nights.", orientation: "social" },
   { id: "quietMornings", rateKey: "timesPerWeek", defaultRate: 2, periodMs: WEEK_MS,
     label: "Estimated quiet mornings ahead", reflection: "Not every morning needs an agenda.", orientation: "philosophical" },
-  { id: "books", rateKey: "timesPerYear", defaultRate: 12, periodMs: YEAR_MS,
-    label: "Estimated books within reach", reflection: "A good book leaves the clock outside.", orientation: "intellectual" },
+  { id: "books", rateKey: "booksPerMonth", defaultRate: 1, periodMs: YEAR_MS / 12,
+    label: "Estimated books still readable", reflection: "Your unread future has a hard cover.", orientation: "intellectual" },
   { id: "oceanVisits", rateKey: "timesPerYear", defaultRate: 2, periodMs: YEAR_MS,
     label: "Estimated ocean visits ahead", reflection: "The horizon asks nothing from you.", orientation: "nature" },
-  { id: "systemSessions", rateKey: "timesPerMonth", defaultRate: 2, periodMs: YEAR_MS / 12,
-    label: "System-shaping sessions ahead", reflection: "Good systems leave fewer decisions.", orientation: "technical" },
-  { id: "experiments", rateKey: "timesPerMonth", defaultRate: 2, periodMs: YEAR_MS / 12,
-    label: "Estimated experiments ahead", reflection: "A result need not prove you right.", orientation: "scientific" },
   { id: "creativeSessions", rateKey: "timesPerWeek", defaultRate: 2, periodMs: WEEK_MS,
     label: "Estimated creative sessions ahead", reflection: "Make it before you explain it.", orientation: "creative" },
   { id: "trainingSessions", rateKey: "timesPerWeek", defaultRate: 3, periodMs: WEEK_MS,
     label: "Estimated training sessions ahead", reflection: "Strength arrives by returning.", orientation: "physical" },
+  { id: "runningSessions", rateKey: "timesPerWeek", defaultRate: 3, periodMs: WEEK_MS, requiresUntilDate: true,
+    label: "Runs before your knees object", reflection: "One day, this will be the last run.", orientation: "physical" },
   { id: "hikes", rateKey: "timesPerMonth", defaultRate: 2, periodMs: YEAR_MS / 12,
     label: "Estimated hikes ahead", reflection: "The path ignores your calendar.", orientation: "nature" },
-  { id: "mentoringConversations", rateKey: "timesPerMonth", defaultRate: 2, periodMs: YEAR_MS / 12,
-    label: "Mentoring conversations ahead", reflection: "Leadership begins with attention.", orientation: "leadership" },
   { id: "smallBets", rateKey: "timesPerYear", defaultRate: 4, periodMs: YEAR_MS,
     label: "Small bets still available", reflection: "Keep the bet small enough to learn.", orientation: "entrepreneurial" },
-  { id: "makingSessions", rateKey: "timesPerMonth", defaultRate: 2, periodMs: YEAR_MS / 12,
-    label: "Estimated making sessions ahead", reflection: "The hand notices what the plan missed.", orientation: "practical" },
-  { id: "culturalNights", rateKey: "timesPerMonth", defaultRate: 1, periodMs: YEAR_MS / 12,
-    label: "Estimated cultural nights ahead", reflection: "Taste grows by meeting the unfamiliar.", orientation: "cultural" },
-  { id: "contemplativeSessions", rateKey: "timesPerWeek", defaultRate: 3, periodMs: WEEK_MS,
-    label: "Contemplative sessions ahead", reflection: "Stillness is not time left unused.", orientation: "spiritual" },
+  { id: "nightLife", rateKey: "nightsPerMonth", defaultRate: 1, periodMs: YEAR_MS / 12, requiresUntilDate: true,
+    label: "Wild nights before life gets sensible", reflection: "Adulthood has a last call, too.", orientation: "social" },
   { id: "volunteerDays", rateKey: "timesPerMonth", defaultRate: 1, periodMs: YEAR_MS / 12,
     label: "Estimated volunteer days ahead", reflection: "Public life begins by showing up.", orientation: "civic" },
   { id: "journeys", rateKey: "timesPerYear", defaultRate: 2, periodMs: YEAR_MS,
-    label: "Estimated journeys ahead", reflection: "Leave room for somewhere unknown.", orientation: "exploratory" },
-  { id: "resiliencePractice", rateKey: "timesPerMonth", defaultRate: 1, periodMs: YEAR_MS / 12,
-    label: "Resilience practice ahead", reflection: "Prepare before the need arrives.", orientation: "resilience" }
+    label: "Estimated journeys ahead", reflection: "Leave room for somewhere unknown.", orientation: "exploratory" }
 ]
 var CARD_METRIC_IDS = [
   "lifeWeek", "weekends", "sunsets", "christmas", "heartbeats", "breaths",
-  "wakefulHours", "familyMeals", "seasons", "childhoodHours", "workdays", "mobilityDays"
+  "wakefulHours", "familyMeals", "seasons", "childhoodDays", "workdays", "daysUntilWobbly", "doomsday"
 ]
 for (var recurringIndex = 0; recurringIndex < RECURRING_CARD_SPECS.length; recurringIndex++)
   CARD_METRIC_IDS.push(RECURRING_CARD_SPECS[recurringIndex].id)
@@ -62,9 +50,10 @@ function defaultMetrics() {
     wakefulHours: { enabled: true, sleepHoursPerDay: 8 },
     familyMeals: { enabled: false, timesPerWeek: 3, untilDate: "" },
     seasons: { enabled: false },
-    childhoodHours: { enabled: false, childBirthDate: "", hoursPerWeek: 8 },
+    childhoodDays: { enabled: false, untilDate: "" },
     workdays: { enabled: false, retirementDate: "", daysPerWeek: 5, vacationWeeksPerYear: 5 },
-    mobilityDays: { enabled: false, untilDate: "" }
+    daysUntilWobbly: { enabled: false, untilDate: "" },
+    doomsday: { enabled: false, untilDate: "" }
   }
   for (var i = 0; i < RECURRING_CARD_SPECS.length; i++) {
     var spec = RECURRING_CARD_SPECS[i]
@@ -230,14 +219,17 @@ function parseConfig(text) {
 
   config.metrics.seasons = normalizeMetric(rawMetrics.seasons, config.metrics.seasons).result
 
-  metric = normalizeMetric(rawMetrics.childhoodHours, config.metrics.childhoodHours)
-  metric.result.childBirthDate = typeof metric.source.childBirthDate === "string" ? metric.source.childBirthDate : ""
-  metric.result.hoursPerWeek = boundedNumber(metric.source.hoursPerWeek, metric.result.hoursPerWeek, 0, 168)
-  if (metric.result.enabled && !parseLocalDate(metric.result.childBirthDate)) {
-    config._issues.push("childhoodHours.childBirthDate is required and must use YYYY-MM-DD")
-    metric.result.enabled = false
+  var deadlineMetricIds = ["childhoodDays", "daysUntilWobbly", "doomsday"]
+  for (var deadlineIndex = 0; deadlineIndex < deadlineMetricIds.length; deadlineIndex++) {
+    var deadlineId = deadlineMetricIds[deadlineIndex]
+    metric = normalizeMetric(rawMetrics[deadlineId], config.metrics[deadlineId])
+    metric.result.untilDate = typeof metric.source.untilDate === "string" ? metric.source.untilDate : ""
+    if (metric.result.enabled && !parseLocalDate(metric.result.untilDate)) {
+      config._issues.push(deadlineId + ".untilDate is required and must use YYYY-MM-DD")
+      metric.result.enabled = false
+    }
+    config.metrics[deadlineId] = metric.result
   }
-  config.metrics.childhoodHours = metric.result
 
   metric = normalizeMetric(rawMetrics.workdays, config.metrics.workdays)
   metric.result.retirementDate = typeof metric.source.retirementDate === "string" ? metric.source.retirementDate : ""
@@ -250,21 +242,16 @@ function parseConfig(text) {
   }
   config.metrics.workdays = metric.result
 
-  metric = normalizeMetric(rawMetrics.mobilityDays, config.metrics.mobilityDays)
-  metric.result.untilDate = typeof metric.source.untilDate === "string" ? metric.source.untilDate : ""
-  if (metric.result.enabled && !parseLocalDate(metric.result.untilDate)) {
-    config._issues.push("mobilityDays.untilDate is required and must use YYYY-MM-DD")
-    metric.result.enabled = false
-  }
-  config.metrics.mobilityDays = metric.result
-
   for (var recurringMetricIndex = 0; recurringMetricIndex < RECURRING_CARD_SPECS.length; recurringMetricIndex++) {
     var recurringSpec = RECURRING_CARD_SPECS[recurringMetricIndex]
     metric = normalizeMetric(rawMetrics[recurringSpec.id], config.metrics[recurringSpec.id])
     metric.result[recurringSpec.rateKey] = boundedNumber(
       metric.source[recurringSpec.rateKey], metric.result[recurringSpec.rateKey], 0, 1000)
     metric.result.untilDate = typeof metric.source.untilDate === "string" ? metric.source.untilDate : ""
-    if (metric.result.untilDate !== "" && !parseLocalDate(metric.result.untilDate)) {
+    if (recurringSpec.requiresUntilDate && metric.result.enabled && !parseLocalDate(metric.result.untilDate)) {
+      config._issues.push(recurringSpec.id + ".untilDate is required and must use YYYY-MM-DD")
+      metric.result.enabled = false
+    } else if (metric.result.untilDate !== "" && !parseLocalDate(metric.result.untilDate)) {
       config._issues.push(recurringSpec.id + ".untilDate must use YYYY-MM-DD")
       metric.result.untilDate = ""
     }
@@ -285,10 +272,10 @@ function parseConfig(text) {
     ? rawVisualization.cards : {}
   if (rawCards.count !== undefined) {
     var requestedCount = Number(rawCards.count)
-    if (requestedCount === 2 || requestedCount === 4 || requestedCount === 6)
+    if (isFinite(requestedCount) && requestedCount >= 1 && Math.floor(requestedCount) === requestedCount)
       config.visualization.cards.count = requestedCount
     else
-      config._issues.push("visualization.cards.count must be 2, 4, or 6; using 6")
+      config._issues.push("visualization.cards.count must be a positive whole number; using 6")
   }
 
   var requestedFixed = rawCards.fixed === undefined ? DEFAULT_FIXED_CARDS : rawCards.fixed
@@ -533,6 +520,11 @@ function groupedInteger(value) {
   return text.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
 }
 
+function unitCountdown(value, singular, plural) {
+  var rounded = Math.max(0, Math.round(Number(value) || 0))
+  return groupedInteger(rounded) + " " + (rounded === 1 ? singular + " remains" : plural + " remain")
+}
+
 function compactNumber(value) {
   var number = Math.max(0, Number(value) || 0)
   function compact(divisor, suffix) {
@@ -613,8 +605,8 @@ function recurringOpportunityCard(spec, metric, life, now) {
   var remainingMs = Math.max(0, boundary.getTime() - now.getTime())
   var rate = metric[spec.rateKey]
   var unitsPerMillisecond = rate / spec.periodMs
-  var period = spec.rateKey === "timesPerWeek" ? "week"
-    : (spec.rateKey === "timesPerMonth" ? "month" : "year")
+  var period = spec.rateKey.indexOf("PerWeek") >= 0 ? "week"
+    : (spec.rateKey.indexOf("PerMonth") >= 0 ? "month" : "year")
   return {
     id: spec.id,
     kind: "number",
@@ -709,7 +701,7 @@ function cardViewModel(id, config, life, now) {
       id: id, kind: "number", headline: compactNumber(life.remainingMinutes * metrics.heartbeats.beatsPerMinute),
       label: "Estimated heartbeats ahead", detail: "At " + metrics.heartbeats.beatsPerMinute + " beats per minute.",
       reflection: "The body keeps time on its own.",
-      countdown: "next estimate in " + formatCountdown(nextRoundedDrop(remainingMilliseconds, heartbeatRate))
+      countdown: unitCountdown(remainingMilliseconds * heartbeatRate, "heartbeat", "heartbeats")
     }
   }
   if (id === "breaths") {
@@ -718,7 +710,7 @@ function cardViewModel(id, config, life, now) {
       id: id, kind: "number", headline: compactNumber(life.remainingMinutes * metrics.breaths.breathsPerMinute),
       label: "Estimated breaths ahead", detail: "At " + metrics.breaths.breathsPerMinute + " breaths per minute.",
       reflection: "Most of life arrives this quietly.",
-      countdown: "next estimate in " + formatCountdown(nextRoundedDrop(remainingMilliseconds, breathRate))
+      countdown: unitCountdown(remainingMilliseconds * breathRate, "breath", "breaths")
     }
   }
   if (id === "wakefulHours") {
@@ -764,22 +756,17 @@ function cardViewModel(id, config, life, now) {
         : "no further occurrence"
     }
   }
-  if (id === "childhoodHours") {
-    var childBorn = parseLocalDate(metrics.childhoodHours.childBirthDate)
-    var adulthood = new Date(
-      childBorn.getFullYear() + 18, childBorn.getMonth(), childBorn.getDate(), 0, 0, 0, 0)
-    if (adulthood > life.boundary) adulthood = life.boundary
-    var childhoodRemainingMs = Math.max(0, adulthood.getTime() - now.getTime())
-    var childhoodRate = metrics.childhoodHours.hoursPerWeek / WEEK_MS
+  if (id === "childhoodDays") {
+    var childhoodBoundary = cappedCardBoundary(metrics.childhoodDays.untilDate, life)
+    var childhoodDays = remainingCalendarDays(now, childhoodBoundary)
+    var childhoodNextDay = dayStart(now, 1)
     return {
-      id: id, kind: "number", orientation: "social",
-      headline: formatHoursMinutes(childhoodRemainingMs * childhoodRate * 60),
-      label: "Estimated childhood hours together", detail: "At " + metrics.childhoodHours.hoursPerWeek
-        + " shared hours per week until age 18.",
-      reflection: "Childhood happens on ordinary days.",
-      countdown: childhoodRate > 0 && childhoodRemainingMs > 0
-        ? "next minute in " + formatCountdown(nextRoundedDrop(childhoodRemainingMs, childhoodRate * 60))
-        : "this horizon has closed"
+      id: id, kind: "number", orientation: "social", headline: groupedInteger(childhoodDays),
+      label: "Days before your child leaves home", detail: "Through " + metrics.childhoodDays.untilDate + ".",
+      reflection: "There will be a last day under one roof.",
+      countdown: childhoodNextDay < childhoodBoundary
+        ? "next count in " + formatCountdown(childhoodNextDay.getTime() - now.getTime())
+        : "this chapter has closed"
     }
   }
   if (id === "workdays") {
@@ -798,17 +785,31 @@ function cardViewModel(id, config, life, now) {
         : "no further estimate"
     }
   }
-  if (id === "mobilityDays") {
-    var mobilityBoundary = cappedCardBoundary(metrics.mobilityDays.untilDate, life)
-    var mobilityDays = remainingCalendarDays(now, mobilityBoundary)
-    var mobilityNextDay = dayStart(now, 1)
+  if (id === "daysUntilWobbly") {
+    var wobblyBoundary = cappedCardBoundary(metrics.daysUntilWobbly.untilDate, life)
+    var wobblyDays = remainingCalendarDays(now, wobblyBoundary)
+    var wobblyNextDay = dayStart(now, 1)
     return {
-      id: id, kind: "number", orientation: "health", headline: groupedInteger(mobilityDays),
-      label: "Chosen mobility days ahead", detail: "Through " + metrics.mobilityDays.untilDate + ".",
-      reflection: "Movement keeps you in the world.",
-      countdown: mobilityNextDay < mobilityBoundary
-        ? "next count in " + formatCountdown(mobilityNextDay.getTime() - now.getTime())
-        : "this horizon has closed"
+      id: id, kind: "number", orientation: "health", headline: groupedInteger(wobblyDays),
+      label: "Days until the wheels come off", detail: "Your chosen mobility cutoff: "
+        + metrics.daysUntilWobbly.untilDate + ".",
+      reflection: "Use your legs while they still answer.",
+      countdown: wobblyNextDay < wobblyBoundary
+        ? "next count in " + formatCountdown(wobblyNextDay.getTime() - now.getTime())
+        : "the wheels are officially off"
+    }
+  }
+  if (id === "doomsday") {
+    var doomsdayBoundary = cappedCardBoundary(metrics.doomsday.untilDate, life)
+    var doomsdayDays = remainingCalendarDays(now, doomsdayBoundary)
+    var doomsdayNextDay = dayStart(now, 1)
+    return {
+      id: id, kind: "number", orientation: "resilience", headline: groupedInteger(doomsdayDays),
+      label: "Days until doomsday", detail: "Your hypothetical climax: " + metrics.doomsday.untilDate + ".",
+      reflection: "Stock the bunker before the sirens.",
+      countdown: doomsdayNextDay < doomsdayBoundary
+        ? "next count in " + formatCountdown(doomsdayNextDay.getTime() - now.getTime())
+        : "the bunker clock hit zero"
     }
   }
   var recurringSpec = recurringCardSpec(id)
@@ -822,7 +823,10 @@ function cardDeck(config, life, now, openingSeed) {
   var cards = []
   for (var i = 0; i < ids.length; i++) {
     var card = cardViewModel(ids[i], config, life, now)
-    if (card) cards.push(card)
+    if (card) {
+      card.rotating = config.visualization.cards.fixed.indexOf(ids[i]) < 0
+      cards.push(card)
+    }
   }
   return cards
 }

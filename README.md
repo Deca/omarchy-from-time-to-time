@@ -109,7 +109,7 @@ Alerts suppress cues on startup and configuration reload, stale cues after suspe
 
 Perspective is the default. It chooses one featured reflection rather than presenting a dashboard of equally weighted counters. Context decides what deserves prominence: Christmas Day, the start of a personal life-week, Saturday, and local evening can each change the copy.
 
-Set `visualization.mode` to `cards` for a bounded alternative:
+Set `visualization.mode` to `cards` for a configurable deck:
 
 ```json
 {
@@ -123,9 +123,9 @@ Set `visualization.mode` to `cards` for a bounded alternative:
 }
 ```
 
-`count` accepts `2`, `4`, or `6`. Fixed IDs keep their listed order. Enabled card metrics not fixed form the rotation pool; enough are selected without replacement each time the panel opens and remain in place while it is open. If too few metrics are available, the panel shows fewer cards rather than duplicates or filler.
+`count` accepts any positive whole number. Fixed IDs keep their listed order. Enabled card metrics not fixed form the rotation pool; enough are selected without replacement each time the panel opens and remain in place while it is open. Rotating cards have an accent tint so they are visibly distinct from neutral fixed cards. If too few metrics are available, the panel shows fewer cards rather than duplicates or filler.
 
-The initial card set is `lifeWeek`, `weekends`, `sunsets`, `christmas`, `heartbeats`, `breaths`, `wakefulHours`, and `familyMeals`. Cards include a small live countdown to the next meaningful estimate or calendar change; values such as waking time retain a lower-level hours/minutes readout. Rate-based values are estimates to the chosen horizon, not medical predictions. `familyMeals` is disabled in the example because it describes a personal relationship; enable it only when its assumptions feel useful.
+The default card set is `lifeWeek`, `weekends`, `sunsets`, `christmas`, `heartbeats`, `breaths`, `wakefulHours`, and `familyMeals`; [`CARDS.md`](CARDS.md) documents the optional finite-window cards. Cards include a small live countdown to the next meaningful estimate or calendar change. Fast-changing estimates such as heartbeats and breaths count down in their own units instead of seconds. Rate-based values are estimates to a chosen horizon, not medical predictions. `familyMeals` is disabled in the example because it describes a personal relationship; enable it only when its assumptions feel useful.
 
 #### Managing cards
 
@@ -152,7 +152,7 @@ Each card has an `enabled` switch under `metrics`. Disabled cards cannot be fixe
 
 `familyMeals` estimates meals from now until `untilDate` at `timesPerWeek`. If `untilDate` is empty, it uses the life horizon; a date beyond the life horizon is capped there. This is a simple frequency estimate, not a promise that meals will happen. Use an explicit date when the relationship has a more meaningful shared horizon.
 
-Changes reload automatically. Open the panel after changing configuration, or press `R` while focused / middle-click the bar to reload. A bad mode, card count, unknown ID, disabled fixed ID, duplicate, or excess fixed ID is ignored and shown as a configuration issue in the panel. If fewer enabled cards exist than requested slots, fewer cards are shown.
+Changes reload automatically. Open the panel after changing configuration, or press `R` while focused / middle-click the bar to reload. A bad mode, non-positive or fractional card count, unknown ID, disabled fixed ID, duplicate, or excess fixed ID is ignored and shown as a configuration issue in the panel. If fewer enabled cards exist than requested slots, fewer cards are shown.
 
 [`METRICS.md`](METRICS.md) remains a research catalogue and admission test for future ideas—not a menu of promised features.
 

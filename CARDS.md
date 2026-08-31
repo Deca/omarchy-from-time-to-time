@@ -1,6 +1,8 @@
 # Card Catalogue
 
-Cards are finite prompts for attention, not goals or forecasts. At most six appear at once. Every optional card is disabled by default until its assumptions are configured deliberately.
+Cards make finite windows of life visible. They are prompts for attention, not goals, diagnoses, or forecasts. Optional cards stay disabled until their assumptions are configured deliberately.
+
+The strongest cards describe an opportunity that exists only while a relationship, age, ability, or other condition lasts. Prefer an honest cutoff date over silently extending every habit across the full life horizon.
 
 ## Managing the deck
 
@@ -9,27 +11,27 @@ Cards are finite prompts for attention, not goals or forecasts. At most six appe
   "visualization": {
     "mode": "cards",
     "cards": {
-      "count": 6,
+      "count": 8,
       "fixed": ["lifeWeek", "books"]
     }
   },
   "metrics": {
     "books": {
       "enabled": true,
-      "timesPerYear": 12,
+      "booksPerMonth": 1,
       "untilDate": ""
     }
   }
 }
 ```
 
-- `count` accepts `2`, `4`, or `6`.
-- `fixed` is ordered. Fixed cards appear first.
-- Other enabled cards rotate into the open slots when the panel opens.
+- `count` accepts any positive whole number. The deck shows up to that many enabled cards; there is no 2/4/6 slot restriction.
+- `fixed` is ordered. Fixed cards appear first with the neutral card color.
+- Other enabled cards rotate into open slots when the panel opens and use an accent-tinted card color.
 - Selection remains stable while the panel is open.
-- Empty `untilDate` values use the configured life horizon.
+- Empty optional `untilDate` values use the configured life horizon.
 - Dates use local `YYYY-MM-DD` values.
-- Rates describe an assumption, not a target. Set a rate to `0` when no estimate is useful.
+- Rates describe observed habits, not targets. Set a rate to `0` when no estimate is useful.
 
 ## Core cards
 
@@ -39,8 +41,8 @@ Cards are finite prompts for attention, not goals or forecasts. At most six appe
 | `weekends` | Saturdays in the life horizon | none |
 | `sunsets` | Remaining calendar-day opportunities | none |
 | `christmas` | December 25 occurrences | none |
-| `heartbeats` | Estimated remaining heartbeats | `beatsPerMinute` |
-| `breaths` | Estimated remaining breaths | `breathsPerMinute` |
+| `heartbeats` | Estimated remaining heartbeats, with the live countdown expressed in heartbeats | `beatsPerMinute` |
+| `breaths` | Estimated remaining breaths, with the live countdown expressed in breaths | `breathsPerMinute` |
 | `wakefulHours` | Estimated waking allocation | `sleepHoursPerDay` |
 | `familyMeals` | Estimated shared family meals | `timesPerWeek`, optional `untilDate` |
 | `seasons` | Meteorological season changes | none |
@@ -49,49 +51,42 @@ Cards are finite prompts for attention, not goals or forecasts. At most six appe
 
 | ID | Meaning | Parameters |
 |---|---|---|
-| `parentVisits` | Visits with parents | `timesPerYear`, optional `untilDate` |
-| `parentCalls` | Calls with parents | `timesPerWeek`, optional `untilDate` |
+| `parentVisits` | Visits with parents during a chosen shared horizon | `timesPerYear`, optional `untilDate` |
 | `partnerEvenings` | Evenings shared with a partner | `timesPerWeek`, optional `untilDate` |
-| `childhoodHours` | Shared hours before a child turns 18 | `childBirthDate`, `hoursPerWeek` |
+| `childhoodDays` | Calendar days before a child becomes an adult or leaves home | required `untilDate` |
 
-Use an explicit `untilDate` when a relationship has a more honest shared horizon than the user's life horizon. Names and dates remain local.
+`childhoodDays` intentionally uses a user-chosen date. Families and leaving-home ages differ, so the plugin does not infer the boundary from a birth date.
 
-## Interest and orientation cards
+## Time-window cards
 
-| Orientation | Card ID | Counted opportunity | Parameters |
-|---|---|---|---|
-| Technical / Systems | `systemSessions` | System-shaping sessions | `timesPerMonth`, optional `untilDate` |
-| Scientific / Analytical | `experiments` | Experiments | `timesPerMonth`, optional `untilDate` |
-| Intellectual / Scholarly | `books` | Books within reach | `timesPerYear`, optional `untilDate` |
-| Philosophical / Existential | `quietMornings` | Quiet mornings | `timesPerWeek`, optional `untilDate` |
-| Creative / Artistic | `creativeSessions` | Creative sessions | `timesPerWeek`, optional `untilDate` |
-| Physical / Athletic | `trainingSessions` | Training sessions | `timesPerWeek`, optional `untilDate` |
-| Health / Biological | `mobilityDays` | Days in a user-chosen mobility horizon | required `untilDate` |
-| Nature / Outdoors / Adventure | `hikes`, `oceanVisits` | Hikes and ocean visits | rate, optional `untilDate` |
-| Social / Relational | relationship cards above | Shared visits, calls, evenings, and hours | card-specific |
-| Leadership / Organizational | `mentoringConversations` | Mentoring conversations | `timesPerMonth`, optional `untilDate` |
-| Entrepreneurial / Economic | `smallBets` | Small, bounded bets | `timesPerYear`, optional `untilDate` |
-| Practical / Maker / Craft | `makingSessions` | Hands-on making sessions | `timesPerMonth`, optional `untilDate` |
-| Cultural / Aesthetic | `culturalNights` | Concert, theatre, cinema, or museum nights | `timesPerMonth`, optional `untilDate` |
-| Spiritual / Contemplative | `contemplativeSessions` | Contemplative sessions | `timesPerWeek`, optional `untilDate` |
-| Civic / Political / Social-change | `volunteerDays` | Volunteer or civic days | `timesPerMonth`, optional `untilDate` |
-| Exploratory / Futurist | `journeys` | Journeys into unfamiliar places or work | `timesPerYear`, optional `untilDate` |
-| Self-reliance / Resilience | `resiliencePractice` | Preparedness and resilience practice | `timesPerMonth`, optional `untilDate` |
-
-## Work and experience cards
-
-| ID | Meaning | Parameters |
+| ID | Counted opportunity | Parameters |
 |---|---|---|
-| `workdays` | Estimated workdays before retirement | required `retirementDate`, `daysPerWeek`, `vacationWeeksPerYear` |
+| `books` | Books still readable at the user's observed monthly pace | `booksPerMonth`, optional `untilDate` |
+| `runningSessions` | Runs before a user-chosen active-life cutoff | `timesPerWeek`, required `untilDate` |
+| `daysUntilWobbly` | Days until the user's deliberately blunt mobility cutoff | required `untilDate` |
+| `nightLife` | Nights out before that life stage is expected to end | `nightsPerMonth`, required `untilDate` |
+| `doomsday` | Days until a prepper's hypothetical climax date | required `untilDate` |
+| `workdays` | Workdays before retirement | required `retirementDate`, `daysPerWeek`, `vacationWeeksPerYear` |
+
+These dates are personal thought experiments. The plugin never infers disability, health expectancy, family milestones, or disaster risk.
+
+## Other finite opportunities
+
+| ID | Counted opportunity | Parameters |
+|---|---|---|
+| `quietMornings` | Quiet mornings | `timesPerWeek`, optional `untilDate` |
+| `creativeSessions` | Creative sessions | `timesPerWeek`, optional `untilDate` |
+| `trainingSessions` | Training sessions | `timesPerWeek`, optional `untilDate` |
 | `oceanVisits` | Ocean visits | `timesPerYear`, optional `untilDate` |
 | `hikes` | Hikes | `timesPerMonth`, optional `untilDate` |
-| `journeys` | Journeys | `timesPerYear`, optional `untilDate` |
+| `smallBets` | Small, bounded bets | `timesPerYear`, optional `untilDate` |
+| `volunteerDays` | Volunteer or civic days | `timesPerMonth`, optional `untilDate` |
+| `journeys` | Journeys into unfamiliar places or work | `timesPerYear`, optional `untilDate` |
 
 ## Interpretation limits
 
 - Frequency cards multiply the configured rate by time remaining. They do not predict attendance or achievement.
-- `childhoodHours` stops at the child's eighteenth birthday and does not judge how the hours are spent.
-- `mobilityDays` requires a date chosen by the user. The plugin never infers health expectancy.
-- `workdays` is a simple allocation estimate; it does not include public holidays or changing work patterns.
+- Required cutoff dates make a limited period explicit; they are user assumptions, not medical or social predictions.
+- `workdays` is a simple allocation estimate and excludes public holidays or changing work patterns.
 - Seasons use meteorological starts: March 1, June 1, September 1, and December 1.
 - Card reflections are original interface copy, not quotations or verdicts.

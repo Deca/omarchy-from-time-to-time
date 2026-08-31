@@ -1,5 +1,5 @@
 {
-  "_note": "Copy this file to ~/.config/omarchy/timeline.json and customize it. Perspective is the default; Cards is a bounded alternative with 2, 4, or 6 slots.",
+  "_note": "Copy this file to ~/.config/omarchy/timeline.json and customize it. Perspective is the default; Cards accepts any positive count and rotates enabled metrics into non-fixed slots.",
   "life": {
     "enabled": true,
     "birthDate": "1990-01-01",
@@ -60,10 +60,9 @@
     "seasons": {
       "enabled": false
     },
-    "childhoodHours": {
+    "childhoodDays": {
       "enabled": false,
-      "childBirthDate": "",
-      "hoursPerWeek": 8
+      "untilDate": ""
     },
     "workdays": {
       "enabled": false,
@@ -71,18 +70,17 @@
       "daysPerWeek": 5,
       "vacationWeeksPerYear": 5
     },
-    "mobilityDays": {
+    "daysUntilWobbly": {
+      "enabled": false,
+      "untilDate": ""
+    },
+    "doomsday": {
       "enabled": false,
       "untilDate": ""
     },
     "parentVisits": {
       "enabled": false,
       "timesPerYear": 6,
-      "untilDate": ""
-    },
-    "parentCalls": {
-      "enabled": false,
-      "timesPerWeek": 1,
       "untilDate": ""
     },
     "partnerEvenings": {
@@ -97,22 +95,12 @@
     },
     "books": {
       "enabled": false,
-      "timesPerYear": 12,
+      "booksPerMonth": 1,
       "untilDate": ""
     },
     "oceanVisits": {
       "enabled": false,
       "timesPerYear": 2,
-      "untilDate": ""
-    },
-    "systemSessions": {
-      "enabled": false,
-      "timesPerMonth": 2,
-      "untilDate": ""
-    },
-    "experiments": {
-      "enabled": false,
-      "timesPerMonth": 2,
       "untilDate": ""
     },
     "creativeSessions": {
@@ -125,12 +113,12 @@
       "timesPerWeek": 3,
       "untilDate": ""
     },
-    "hikes": {
+    "runningSessions": {
       "enabled": false,
-      "timesPerMonth": 2,
+      "timesPerWeek": 3,
       "untilDate": ""
     },
-    "mentoringConversations": {
+    "hikes": {
       "enabled": false,
       "timesPerMonth": 2,
       "untilDate": ""
@@ -140,19 +128,9 @@
       "timesPerYear": 4,
       "untilDate": ""
     },
-    "makingSessions": {
+    "nightLife": {
       "enabled": false,
-      "timesPerMonth": 2,
-      "untilDate": ""
-    },
-    "culturalNights": {
-      "enabled": false,
-      "timesPerMonth": 1,
-      "untilDate": ""
-    },
-    "contemplativeSessions": {
-      "enabled": false,
-      "timesPerWeek": 3,
+      "nightsPerMonth": 1,
       "untilDate": ""
     },
     "volunteerDays": {
@@ -163,11 +141,6 @@
     "journeys": {
       "enabled": false,
       "timesPerYear": 2,
-      "untilDate": ""
-    },
-    "resiliencePractice": {
-      "enabled": false,
-      "timesPerMonth": 1,
       "untilDate": ""
     }
   },
