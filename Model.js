@@ -516,6 +516,7 @@ function cardViewModel(id, config, life, now) {
       headline: "Week " + groupedInteger(week),
       label: "of " + groupedInteger(life.totalWeeks) + " in this horizon",
       detail: "year " + position.year + " · week " + position.currentInYear,
+      reflection: "year " + position.year + " · week " + position.currentInYear + " · enough for one thing",
       countdown: nextLifeWeek < life.boundary
         ? "next week in " + formatCountdown(nextLifeWeek.getTime() - now.getTime())
         : "final week in this horizon",
@@ -530,6 +531,7 @@ function cardViewModel(id, config, life, now) {
     return {
       id: id, kind: "number", headline: groupedInteger(weekends), label: "Saturdays ahead",
       detail: now.getDay() === 6 ? "One of them is already here." : "The next one is still ahead.",
+      reflection: "You don't need to fill a free day.",
       countdown: nextSaturday < life.boundary
         ? "next one in " + formatCountdown(nextSaturday.getTime() - now.getTime())
         : "no further occurrence"
@@ -540,6 +542,7 @@ function cardViewModel(id, config, life, now) {
     return {
       id: id, kind: "number", headline: groupedInteger(remainingCalendarDays(now, life.boundary)),
       label: "Sunsets ahead", detail: "One calendar-day opportunity at a time.",
+      reflection: "The day was worth noticing.",
       countdown: nextDay < life.boundary
         ? "next count in " + formatCountdown(nextDay.getTime() - now.getTime())
         : "no further occurrence"
@@ -553,6 +556,7 @@ function cardViewModel(id, config, life, now) {
       id: id, kind: "number", headline: groupedInteger(christmases),
       label: "Christmases in this horizon",
       detail: now.getMonth() === 11 && now.getDate() === 25 ? "This is one of them." : "Each one is still ahead.",
+      reflection: "Tradition is ordinary time, remembered.",
       countdown: nextChristmas < life.boundary
         ? "next one in " + formatCountdown(nextChristmas.getTime() - now.getTime())
         : "no further occurrence"
@@ -563,6 +567,7 @@ function cardViewModel(id, config, life, now) {
     return {
       id: id, kind: "number", headline: compactNumber(life.remainingMinutes * metrics.heartbeats.beatsPerMinute),
       label: "Estimated heartbeats ahead", detail: "At " + metrics.heartbeats.beatsPerMinute + " beats per minute.",
+      reflection: "The body keeps time on its own.",
       countdown: "next estimate in " + formatCountdown(nextRoundedDrop(remainingMilliseconds, heartbeatRate))
     }
   }
@@ -571,6 +576,7 @@ function cardViewModel(id, config, life, now) {
     return {
       id: id, kind: "number", headline: compactNumber(life.remainingMinutes * metrics.breaths.breathsPerMinute),
       label: "Estimated breaths ahead", detail: "At " + metrics.breaths.breathsPerMinute + " breaths per minute.",
+      reflection: "Most of life arrives this quietly.",
       countdown: "next estimate in " + formatCountdown(nextRoundedDrop(remainingMilliseconds, breathRate))
     }
   }
@@ -581,6 +587,7 @@ function cardViewModel(id, config, life, now) {
     return {
       id: id, kind: "number", headline: formatHoursMinutes(wakefulMinutes),
       label: "Estimated waking time ahead", detail: "Allowing " + metrics.wakefulHours.sleepHoursPerDay + " hours of sleep per day.",
+      reflection: "Attention, not hours, makes a day.",
       countdown: awakeRatio > 0
         ? "next minute in " + formatCountdown(nextRoundedDrop(remainingMilliseconds, wakefulRate))
         : "no waking time allocated"
@@ -599,6 +606,7 @@ function cardViewModel(id, config, life, now) {
       id: id, kind: "number", headline: groupedInteger(meals),
       label: "Estimated family meals ahead",
       detail: "At " + metrics.familyMeals.timesPerWeek + " per week" + mealHorizon + ".",
+      reflection: "A meal is time made visible between people.",
       countdown: metrics.familyMeals.timesPerWeek > 0
         ? "next estimate in " + formatCountdown(nextRoundedDrop(mealsRemainingMinutes * 60000, mealsPerMillisecond))
         : "no further estimate"

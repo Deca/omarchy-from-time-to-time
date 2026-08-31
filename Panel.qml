@@ -597,12 +597,12 @@ Panel {
 
                     Text {
                       width: parent.width
-                      text: cardDelegate.modelData.detail
+                      text: cardDelegate.modelData.reflection
                       color: root.contentForeground
-                      opacity: 0.55
+                      opacity: 0.72
                       elide: Text.ElideRight
                       font.family: root.contentFontFamily
-                      font.pixelSize: Style.font.caption
+                      font.pixelSize: Style.font.bodySmall
                     }
 
                     Text {

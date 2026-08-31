@@ -190,8 +190,21 @@ const personalLife = context.lifeStats("1981-06-23", 90, new Date(2026, 7, 31, 1
 const personalCard = context.cardDeck(cardsConfig, personalLife, new Date(2026, 7, 31, 12, 0), 17)
   .find(card => card.id === "lifeWeek")
 assert.equal(personalCard.detail, "year 45 · week 10")
+assert.equal(personalCard.reflection, "year 45 · week 10 · enough for one thing")
 assert.equal(personalCard.totalInHorizon, 52)
 assert(personalCard.currentInHorizon > 26 && personalCard.currentInHorizon < 29)
+
+const reflections = {
+  weekends: "You don't need to fill a free day.",
+  sunsets: "The day was worth noticing.",
+  christmas: "Tradition is ordinary time, remembered.",
+  heartbeats: "The body keeps time on its own.",
+  breaths: "Most of life arrives this quietly.",
+  wakefulHours: "Attention, not hours, makes a day.",
+  familyMeals: "A meal is time made visible between people."
+}
+for (const id of Object.keys(reflections))
+  assert.equal(context.cardViewModel(id, relationship, life, now).reflection, reflections[id])
 
 const clamped = parse({
   life: { birthDate: "1990-01-01" },
