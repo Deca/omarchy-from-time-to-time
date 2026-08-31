@@ -179,12 +179,19 @@ const sparse = parse({
 assert.deepEqual(Array.from(context.cardDeck(sparse, life, now, 99), card => card.id), ["lifeWeek"])
 assert.deepEqual(Array.from(context.selectedCardIds(config, 1)), [])
 
-// Card models include bounded estimates and the original 52-mark week strip.
+// Card models include bounded estimates and a compact whole-horizon strip.
 const lifeWeekCard = firstDeck.find(card => card.id === "lifeWeek")
 assert.equal(lifeWeekCard.kind, "week-strip")
-assert.equal(lifeWeekCard.totalInYear, 52)
-assert.equal(lifeWeekCard.completedInYear, lifeWeekCard.currentInYear - 1)
+assert.equal(lifeWeekCard.totalInHorizon, 52)
+assert.equal(lifeWeekCard.completedInHorizon, lifeWeekCard.currentInHorizon - 1)
 assert.match(lifeWeekCard.headline, /^Week [\d,]+$/)
+
+const personalLife = context.lifeStats("1981-06-23", 90, new Date(2026, 7, 31, 12, 0))
+const personalCard = context.cardDeck(cardsConfig, personalLife, new Date(2026, 7, 31, 12, 0), 17)
+  .find(card => card.id === "lifeWeek")
+assert.equal(personalCard.detail, "year 45 · week 10")
+assert.equal(personalCard.totalInHorizon, 52)
+assert(personalCard.currentInHorizon > 26 && personalCard.currentInHorizon < 29)
 
 const clamped = parse({
   life: { birthDate: "1990-01-01" },

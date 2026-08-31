@@ -494,7 +494,11 @@ function personalYearPosition(life, now) {
     life.birthDate.getFullYear() + age + 1, life.birthDate.getMonth(), life.birthDate.getDate(), 0, 0, 0, 0)
   var progress = Math.max(0, Math.min(0.999999, (now.getTime() - anniversary.getTime()) / (next.getTime() - anniversary.getTime())))
   var current = Math.floor(progress * 52) + 1
-  return { year: age + 1, completed: current - 1, current: current, total: 52 }
+  return {
+    year: age,
+    currentInYear: current,
+    totalInYear: 52
+  }
 }
 
 function cardViewModel(id, config, life, now) {
@@ -511,13 +515,13 @@ function cardViewModel(id, config, life, now) {
       kind: "week-strip",
       headline: "Week " + groupedInteger(week),
       label: "of " + groupedInteger(life.totalWeeks) + " in this horizon",
-      detail: "year " + position.year + " · week " + position.current,
+      detail: "year " + position.year + " · week " + position.currentInYear,
       countdown: nextLifeWeek < life.boundary
         ? "next week in " + formatCountdown(nextLifeWeek.getTime() - now.getTime())
         : "final week in this horizon",
-      completedInYear: position.completed,
-      currentInYear: position.current,
-      totalInYear: position.total
+      completedInHorizon: Math.max(0, Math.min(51, Math.floor(life.progress * 52))),
+      currentInHorizon: Math.max(1, Math.min(52, Math.floor(life.progress * 52) + 1)),
+      totalInHorizon: 52
     }
   }
   if (id === "weekends") {

@@ -581,16 +581,16 @@ Panel {
                       spacing: 1
 
                       Repeater {
-                        model: cardDelegate.modelData.kind === "week-strip" ? cardDelegate.modelData.totalInYear : 0
+                        model: cardDelegate.modelData.kind === "week-strip" ? cardDelegate.modelData.totalInHorizon : 0
 
                         Rectangle {
                           required property int index
                           width: (weekStrip.width - 51 * weekStrip.spacing) / 52
                           height: Style.space(13)
                           radius: Math.min(width / 2, Style.space(1))
-                          color: index + 1 === cardDelegate.modelData.currentInYear ? Color.accent : root.contentForeground
-                          opacity: index + 1 === cardDelegate.modelData.currentInYear
-                            ? 1 : (index < cardDelegate.modelData.completedInYear ? 0.42 : 0.12)
+                          color: index + 1 === cardDelegate.modelData.currentInHorizon ? Color.accent : root.contentForeground
+                          opacity: index + 1 === cardDelegate.modelData.currentInHorizon
+                            ? 1 : (index < cardDelegate.modelData.completedInHorizon ? 0.42 : 0.12)
                         }
                       }
                     }
