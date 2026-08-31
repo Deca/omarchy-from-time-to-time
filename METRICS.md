@@ -10,7 +10,7 @@ Awareness metrics turn an abstract life horizon into concrete opportunities. The
 
 ## Current implemented set
 
-Perspective uses five ideas, while Cards adds four explicitly estimated allocations, including one relationship-oriented card:
+Perspective uses five core ideas. Cards includes the default metrics below plus an optional, disabled-by-default catalogue for different relationships and orientations:
 
 | Perspective | Required data | Interpretation |
 |---|---|---|
@@ -25,6 +25,8 @@ Perspective uses five ideas, while Cards adds four explicitly estimated allocati
 | Family meals | Meals/week and optional shared horizon date | A simple estimate of recurring shared opportunities; it does not infer closeness or guarantee attendance. |
 
 Perspective gives one contextual idea prominence and reduces the others to a supporting sentence. Cards shows at most six enabled ideas, preserving configured fixed cards and selecting rotating cards only when the panel opens. Neither mode scores the user.
+
+The complete implemented interface, parameters, orientations, and interpretation limits live in [`CARDS.md`](CARDS.md). The research tables below remain the source catalogue; an implemented card is a narrow interpretation of an idea, not a promise to implement every variation.
 
 ## Admission test for a future metric
 
@@ -137,8 +139,8 @@ These describe available allocations rather than achievement.
 - A future metric brings only the minimum data needed for its chosen perspective or curated card.
 - No general-purpose formula language or arbitrary card builder.
 - Disabled metrics perform no calculation and occupy no space.
-- `familyMeals` is the first relationship-oriented card; it requires an explicit frequency and supports an optional shared horizon date.
-- Additional relationship metrics remain deferred until they have an honest shared horizon and satisfactory copy.
+- Relationship cards require explicit frequencies and support shared horizon dates; `childhoodHours` derives its horizon from the child's eighteenth birthday.
+- Orientation cards remain explicit product choices over one shared recurring-opportunity implementation; users cannot define arbitrary formulas.
 
 ## Display rules
 

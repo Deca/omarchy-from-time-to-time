@@ -56,6 +56,119 @@
       "enabled": false,
       "timesPerWeek": 3,
       "untilDate": ""
+    },
+    "seasons": {
+      "enabled": false
+    },
+    "childhoodHours": {
+      "enabled": false,
+      "childBirthDate": "",
+      "hoursPerWeek": 8
+    },
+    "workdays": {
+      "enabled": false,
+      "retirementDate": "",
+      "daysPerWeek": 5,
+      "vacationWeeksPerYear": 5
+    },
+    "mobilityDays": {
+      "enabled": false,
+      "untilDate": ""
+    },
+    "parentVisits": {
+      "enabled": false,
+      "timesPerYear": 6,
+      "untilDate": ""
+    },
+    "parentCalls": {
+      "enabled": false,
+      "timesPerWeek": 1,
+      "untilDate": ""
+    },
+    "partnerEvenings": {
+      "enabled": false,
+      "timesPerWeek": 2,
+      "untilDate": ""
+    },
+    "quietMornings": {
+      "enabled": false,
+      "timesPerWeek": 2,
+      "untilDate": ""
+    },
+    "books": {
+      "enabled": false,
+      "timesPerYear": 12,
+      "untilDate": ""
+    },
+    "oceanVisits": {
+      "enabled": false,
+      "timesPerYear": 2,
+      "untilDate": ""
+    },
+    "systemSessions": {
+      "enabled": false,
+      "timesPerMonth": 2,
+      "untilDate": ""
+    },
+    "experiments": {
+      "enabled": false,
+      "timesPerMonth": 2,
+      "untilDate": ""
+    },
+    "creativeSessions": {
+      "enabled": false,
+      "timesPerWeek": 2,
+      "untilDate": ""
+    },
+    "trainingSessions": {
+      "enabled": false,
+      "timesPerWeek": 3,
+      "untilDate": ""
+    },
+    "hikes": {
+      "enabled": false,
+      "timesPerMonth": 2,
+      "untilDate": ""
+    },
+    "mentoringConversations": {
+      "enabled": false,
+      "timesPerMonth": 2,
+      "untilDate": ""
+    },
+    "smallBets": {
+      "enabled": false,
+      "timesPerYear": 4,
+      "untilDate": ""
+    },
+    "makingSessions": {
+      "enabled": false,
+      "timesPerMonth": 2,
+      "untilDate": ""
+    },
+    "culturalNights": {
+      "enabled": false,
+      "timesPerMonth": 1,
+      "untilDate": ""
+    },
+    "contemplativeSessions": {
+      "enabled": false,
+      "timesPerWeek": 3,
+      "untilDate": ""
+    },
+    "volunteerDays": {
+      "enabled": false,
+      "timesPerMonth": 1,
+      "untilDate": ""
+    },
+    "journeys": {
+      "enabled": false,
+      "timesPerYear": 2,
+      "untilDate": ""
+    },
+    "resiliencePractice": {
+      "enabled": false,
+      "timesPerMonth": 1,
+      "untilDate": ""
     }
   },
   "schedule": [
