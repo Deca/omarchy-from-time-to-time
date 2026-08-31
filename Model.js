@@ -2,14 +2,57 @@ var DAY_NAMES = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"]
 var ALL_DAYS = [0, 1, 2, 3, 4, 5, 6]
 var DAY_MS = 24 * 60 * 60 * 1000
 var WEEK_MS = 7 * DAY_MS
-var CARD_METRIC_IDS = [
-  "lifeWeek", "weekends", "sunsets", "christmas",
-  "heartbeats", "breaths", "wakefulHours", "familyMeals"
+var YEAR_MS = 365.2425 * DAY_MS
+var RECURRING_CARD_SPECS = [
+  { id: "parentVisits", rateKey: "timesPerYear", defaultRate: 6, periodMs: YEAR_MS,
+    label: "Estimated visits with parents ahead", reflection: "Presence cannot be saved for later.", orientation: "social" },
+  { id: "parentCalls", rateKey: "timesPerWeek", defaultRate: 1, periodMs: WEEK_MS,
+    label: "Estimated calls with parents ahead", reflection: "A voice can shorten a long distance.", orientation: "social" },
+  { id: "partnerEvenings", rateKey: "timesPerWeek", defaultRate: 2, periodMs: WEEK_MS,
+    label: "Estimated evenings together ahead", reflection: "Shared lives grow on ordinary nights.", orientation: "social" },
+  { id: "quietMornings", rateKey: "timesPerWeek", defaultRate: 2, periodMs: WEEK_MS,
+    label: "Estimated quiet mornings ahead", reflection: "Not every morning needs an agenda.", orientation: "philosophical" },
+  { id: "books", rateKey: "timesPerYear", defaultRate: 12, periodMs: YEAR_MS,
+    label: "Estimated books within reach", reflection: "A good book leaves the clock outside.", orientation: "intellectual" },
+  { id: "oceanVisits", rateKey: "timesPerYear", defaultRate: 2, periodMs: YEAR_MS,
+    label: "Estimated ocean visits ahead", reflection: "The horizon asks nothing from you.", orientation: "nature" },
+  { id: "systemSessions", rateKey: "timesPerMonth", defaultRate: 2, periodMs: YEAR_MS / 12,
+    label: "System-shaping sessions ahead", reflection: "Good systems leave fewer decisions.", orientation: "technical" },
+  { id: "experiments", rateKey: "timesPerMonth", defaultRate: 2, periodMs: YEAR_MS / 12,
+    label: "Estimated experiments ahead", reflection: "A result need not prove you right.", orientation: "scientific" },
+  { id: "creativeSessions", rateKey: "timesPerWeek", defaultRate: 2, periodMs: WEEK_MS,
+    label: "Estimated creative sessions ahead", reflection: "Make it before you explain it.", orientation: "creative" },
+  { id: "trainingSessions", rateKey: "timesPerWeek", defaultRate: 3, periodMs: WEEK_MS,
+    label: "Estimated training sessions ahead", reflection: "Strength arrives by returning.", orientation: "physical" },
+  { id: "hikes", rateKey: "timesPerMonth", defaultRate: 2, periodMs: YEAR_MS / 12,
+    label: "Estimated hikes ahead", reflection: "The path ignores your calendar.", orientation: "nature" },
+  { id: "mentoringConversations", rateKey: "timesPerMonth", defaultRate: 2, periodMs: YEAR_MS / 12,
+    label: "Mentoring conversations ahead", reflection: "Leadership begins with attention.", orientation: "leadership" },
+  { id: "smallBets", rateKey: "timesPerYear", defaultRate: 4, periodMs: YEAR_MS,
+    label: "Small bets still available", reflection: "Keep the bet small enough to learn.", orientation: "entrepreneurial" },
+  { id: "makingSessions", rateKey: "timesPerMonth", defaultRate: 2, periodMs: YEAR_MS / 12,
+    label: "Estimated making sessions ahead", reflection: "The hand notices what the plan missed.", orientation: "practical" },
+  { id: "culturalNights", rateKey: "timesPerMonth", defaultRate: 1, periodMs: YEAR_MS / 12,
+    label: "Estimated cultural nights ahead", reflection: "Taste grows by meeting the unfamiliar.", orientation: "cultural" },
+  { id: "contemplativeSessions", rateKey: "timesPerWeek", defaultRate: 3, periodMs: WEEK_MS,
+    label: "Contemplative sessions ahead", reflection: "Stillness is not time left unused.", orientation: "spiritual" },
+  { id: "volunteerDays", rateKey: "timesPerMonth", defaultRate: 1, periodMs: YEAR_MS / 12,
+    label: "Estimated volunteer days ahead", reflection: "Public life begins by showing up.", orientation: "civic" },
+  { id: "journeys", rateKey: "timesPerYear", defaultRate: 2, periodMs: YEAR_MS,
+    label: "Estimated journeys ahead", reflection: "Leave room for somewhere unknown.", orientation: "exploratory" },
+  { id: "resiliencePractice", rateKey: "timesPerMonth", defaultRate: 1, periodMs: YEAR_MS / 12,
+    label: "Resilience practice ahead", reflection: "Prepare before the need arrives.", orientation: "resilience" }
 ]
+var CARD_METRIC_IDS = [
+  "lifeWeek", "weekends", "sunsets", "christmas", "heartbeats", "breaths",
+  "wakefulHours", "familyMeals", "seasons", "childhoodHours", "workdays", "mobilityDays"
+]
+for (var recurringIndex = 0; recurringIndex < RECURRING_CARD_SPECS.length; recurringIndex++)
+  CARD_METRIC_IDS.push(RECURRING_CARD_SPECS[recurringIndex].id)
 var DEFAULT_FIXED_CARDS = ["lifeWeek", "weekends", "sunsets", "christmas"]
 
 function defaultMetrics() {
-  return {
+  var metrics = {
     lifeWeek: { enabled: true },
     weekends: { enabled: true },
     sunsets: { enabled: true },
@@ -17,8 +60,18 @@ function defaultMetrics() {
     heartbeats: { enabled: true, beatsPerMinute: 70 },
     breaths: { enabled: true, breathsPerMinute: 14 },
     wakefulHours: { enabled: true, sleepHoursPerDay: 8 },
-    familyMeals: { enabled: false, timesPerWeek: 3, untilDate: "" }
+    familyMeals: { enabled: false, timesPerWeek: 3, untilDate: "" },
+    seasons: { enabled: false },
+    childhoodHours: { enabled: false, childBirthDate: "", hoursPerWeek: 8 },
+    workdays: { enabled: false, retirementDate: "", daysPerWeek: 5, vacationWeeksPerYear: 5 },
+    mobilityDays: { enabled: false, untilDate: "" }
   }
+  for (var i = 0; i < RECURRING_CARD_SPECS.length; i++) {
+    var spec = RECURRING_CARD_SPECS[i]
+    metrics[spec.id] = { enabled: false, untilDate: "" }
+    metrics[spec.id][spec.rateKey] = spec.defaultRate
+  }
+  return metrics
 }
 
 function defaultConfig() {
@@ -174,6 +227,49 @@ function parseConfig(text) {
     metric.result.untilDate = ""
   }
   config.metrics.familyMeals = metric.result
+
+  config.metrics.seasons = normalizeMetric(rawMetrics.seasons, config.metrics.seasons).result
+
+  metric = normalizeMetric(rawMetrics.childhoodHours, config.metrics.childhoodHours)
+  metric.result.childBirthDate = typeof metric.source.childBirthDate === "string" ? metric.source.childBirthDate : ""
+  metric.result.hoursPerWeek = boundedNumber(metric.source.hoursPerWeek, metric.result.hoursPerWeek, 0, 168)
+  if (metric.result.enabled && !parseLocalDate(metric.result.childBirthDate)) {
+    config._issues.push("childhoodHours.childBirthDate is required and must use YYYY-MM-DD")
+    metric.result.enabled = false
+  }
+  config.metrics.childhoodHours = metric.result
+
+  metric = normalizeMetric(rawMetrics.workdays, config.metrics.workdays)
+  metric.result.retirementDate = typeof metric.source.retirementDate === "string" ? metric.source.retirementDate : ""
+  metric.result.daysPerWeek = boundedNumber(metric.source.daysPerWeek, metric.result.daysPerWeek, 0, 7)
+  metric.result.vacationWeeksPerYear = boundedNumber(
+    metric.source.vacationWeeksPerYear, metric.result.vacationWeeksPerYear, 0, 52)
+  if (metric.result.enabled && !parseLocalDate(metric.result.retirementDate)) {
+    config._issues.push("workdays.retirementDate is required and must use YYYY-MM-DD")
+    metric.result.enabled = false
+  }
+  config.metrics.workdays = metric.result
+
+  metric = normalizeMetric(rawMetrics.mobilityDays, config.metrics.mobilityDays)
+  metric.result.untilDate = typeof metric.source.untilDate === "string" ? metric.source.untilDate : ""
+  if (metric.result.enabled && !parseLocalDate(metric.result.untilDate)) {
+    config._issues.push("mobilityDays.untilDate is required and must use YYYY-MM-DD")
+    metric.result.enabled = false
+  }
+  config.metrics.mobilityDays = metric.result
+
+  for (var recurringMetricIndex = 0; recurringMetricIndex < RECURRING_CARD_SPECS.length; recurringMetricIndex++) {
+    var recurringSpec = RECURRING_CARD_SPECS[recurringMetricIndex]
+    metric = normalizeMetric(rawMetrics[recurringSpec.id], config.metrics[recurringSpec.id])
+    metric.result[recurringSpec.rateKey] = boundedNumber(
+      metric.source[recurringSpec.rateKey], metric.result[recurringSpec.rateKey], 0, 1000)
+    metric.result.untilDate = typeof metric.source.untilDate === "string" ? metric.source.untilDate : ""
+    if (metric.result.untilDate !== "" && !parseLocalDate(metric.result.untilDate)) {
+      config._issues.push(recurringSpec.id + ".untilDate must use YYYY-MM-DD")
+      metric.result.untilDate = ""
+    }
+    config.metrics[recurringSpec.id] = metric.result
+  }
 
   var rawVisualization = raw.visualization && typeof raw.visualization === "object" && !Array.isArray(raw.visualization)
     ? raw.visualization : {}
@@ -501,6 +597,51 @@ function personalYearPosition(life, now) {
   }
 }
 
+function cappedCardBoundary(value, life) {
+  var boundary = parseLocalDate(value) || life.boundary
+  return boundary < life.boundary ? boundary : life.boundary
+}
+
+function recurringCardSpec(id) {
+  for (var i = 0; i < RECURRING_CARD_SPECS.length; i++)
+    if (RECURRING_CARD_SPECS[i].id === id) return RECURRING_CARD_SPECS[i]
+  return null
+}
+
+function recurringOpportunityCard(spec, metric, life, now) {
+  var boundary = cappedCardBoundary(metric.untilDate, life)
+  var remainingMs = Math.max(0, boundary.getTime() - now.getTime())
+  var rate = metric[spec.rateKey]
+  var unitsPerMillisecond = rate / spec.periodMs
+  var period = spec.rateKey === "timesPerWeek" ? "week"
+    : (spec.rateKey === "timesPerMonth" ? "month" : "year")
+  return {
+    id: spec.id,
+    kind: "number",
+    orientation: spec.orientation,
+    headline: groupedInteger(remainingMs * unitsPerMillisecond),
+    label: spec.label,
+    detail: "At " + rate + " per " + period
+      + (metric.untilDate ? " until " + metric.untilDate : " across this life horizon") + ".",
+    reflection: spec.reflection,
+    countdown: rate > 0
+      ? "next estimate in " + formatCountdown(nextRoundedDrop(remainingMs, unitsPerMillisecond))
+      : "no further estimate"
+  }
+}
+
+function seasonStartsUntil(now, boundary) {
+  var starts = []
+  var months = [2, 5, 8, 11]
+  for (var year = now.getFullYear(); year <= boundary.getFullYear(); year++) {
+    for (var i = 0; i < months.length; i++) {
+      var candidate = new Date(year, months[i], 1, 0, 0, 0, 0)
+      if (candidate > now && candidate < boundary) starts.push(candidate)
+    }
+  }
+  return starts
+}
+
 function cardViewModel(id, config, life, now) {
   var metrics = config.metrics
   var remainingMilliseconds = Math.max(0, life.boundary.getTime() - now.getTime())
@@ -612,6 +753,66 @@ function cardViewModel(id, config, life, now) {
         : "no further estimate"
     }
   }
+  if (id === "seasons") {
+    var seasons = seasonStartsUntil(now, life.boundary)
+    return {
+      id: id, kind: "number", orientation: "nature", headline: groupedInteger(seasons.length),
+      label: "Season changes ahead", detail: "Meteorological seasons in this life horizon.",
+      reflection: "The world changes without asking.",
+      countdown: seasons.length > 0
+        ? "next season in " + formatCountdown(seasons[0].getTime() - now.getTime())
+        : "no further occurrence"
+    }
+  }
+  if (id === "childhoodHours") {
+    var childBorn = parseLocalDate(metrics.childhoodHours.childBirthDate)
+    var adulthood = new Date(
+      childBorn.getFullYear() + 18, childBorn.getMonth(), childBorn.getDate(), 0, 0, 0, 0)
+    if (adulthood > life.boundary) adulthood = life.boundary
+    var childhoodRemainingMs = Math.max(0, adulthood.getTime() - now.getTime())
+    var childhoodRate = metrics.childhoodHours.hoursPerWeek / WEEK_MS
+    return {
+      id: id, kind: "number", orientation: "social",
+      headline: formatHoursMinutes(childhoodRemainingMs * childhoodRate * 60),
+      label: "Estimated childhood hours together", detail: "At " + metrics.childhoodHours.hoursPerWeek
+        + " shared hours per week until age 18.",
+      reflection: "Childhood happens on ordinary days.",
+      countdown: childhoodRate > 0 && childhoodRemainingMs > 0
+        ? "next minute in " + formatCountdown(nextRoundedDrop(childhoodRemainingMs, childhoodRate * 60))
+        : "this horizon has closed"
+    }
+  }
+  if (id === "workdays") {
+    var retirement = cappedCardBoundary(metrics.workdays.retirementDate, life)
+    var workRemainingMs = Math.max(0, retirement.getTime() - now.getTime())
+    var workingWeeks = Math.max(0, 52 - metrics.workdays.vacationWeeksPerYear)
+    var workdaysPerMillisecond = metrics.workdays.daysPerWeek * workingWeeks / YEAR_MS
+    return {
+      id: id, kind: "number", orientation: "practical",
+      headline: groupedInteger(workRemainingMs * workdaysPerMillisecond),
+      label: "Estimated workdays ahead", detail: metrics.workdays.daysPerWeek + " days per week · "
+        + metrics.workdays.vacationWeeksPerYear + " vacation weeks per year.",
+      reflection: "A career is long. A workday is a day.",
+      countdown: workdaysPerMillisecond > 0 && workRemainingMs > 0
+        ? "next estimate in " + formatCountdown(nextRoundedDrop(workRemainingMs, workdaysPerMillisecond))
+        : "no further estimate"
+    }
+  }
+  if (id === "mobilityDays") {
+    var mobilityBoundary = cappedCardBoundary(metrics.mobilityDays.untilDate, life)
+    var mobilityDays = remainingCalendarDays(now, mobilityBoundary)
+    var mobilityNextDay = dayStart(now, 1)
+    return {
+      id: id, kind: "number", orientation: "health", headline: groupedInteger(mobilityDays),
+      label: "Chosen mobility days ahead", detail: "Through " + metrics.mobilityDays.untilDate + ".",
+      reflection: "Movement keeps you in the world.",
+      countdown: mobilityNextDay < mobilityBoundary
+        ? "next count in " + formatCountdown(mobilityNextDay.getTime() - now.getTime())
+        : "this horizon has closed"
+    }
+  }
+  var recurringSpec = recurringCardSpec(id)
+  if (recurringSpec) return recurringOpportunityCard(recurringSpec, metrics[id], life, now)
   return null
 }
 

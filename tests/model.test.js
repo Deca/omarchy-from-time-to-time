@@ -37,6 +37,9 @@ assert.deepEqual(Array.from(config.visualization.cards.fixed), ["lifeWeek", "wee
 assert.equal(config.metrics.lifeWeek.enabled, true)
 assert.equal(config.metrics.heartbeats.beatsPerMinute, 70)
 assert.equal(config.metrics.familyMeals.enabled, false)
+assert.equal(config.metrics.books.enabled, false)
+assert.equal(config.metrics.childhoodHours.enabled, false)
+assert.equal(new Set(Array.from(context.CARD_METRIC_IDS)).size, context.CARD_METRIC_IDS.length)
 assert.equal(context.selectedCardIds(config, 1).length, 0)
 
 const mondayNight = new Date(2026, 7, 24, 23, 30)
@@ -205,6 +208,55 @@ const reflections = {
 }
 for (const id of Object.keys(reflections))
   assert.equal(context.cardViewModel(id, relationship, life, now).reflection, reflections[id])
+
+// Curated interest cards share recurring math while retaining explicit IDs, copy, and parameters.
+const expansionMetrics = {
+  seasons: { enabled: true },
+  childhoodHours: { enabled: true, childBirthDate: "2015-01-01", hoursPerWeek: 8 },
+  workdays: { enabled: true, retirementDate: "2030-01-01", daysPerWeek: 5, vacationWeeksPerYear: 5 },
+  mobilityDays: { enabled: true, untilDate: "2030-01-01" }
+}
+for (const spec of Array.from(context.RECURRING_CARD_SPECS)) {
+  expansionMetrics[spec.id] = { enabled: true, untilDate: "2030-01-01" }
+  expansionMetrics[spec.id][spec.rateKey] = 2
+}
+const expansion = parse({
+  life: { birthDate: "1990-01-01", horizonYears: 90 },
+  visualization: { mode: "cards", cards: { count: 6, fixed: ["books", "experiments"] } },
+  metrics: expansionMetrics
+})
+assert.deepEqual(Array.from(expansion.visualization.cards.fixed), ["books", "experiments"])
+for (const spec of Array.from(context.RECURRING_CARD_SPECS)) {
+  const card = context.cardViewModel(spec.id, expansion, life, now)
+  assert.equal(card.orientation, spec.orientation)
+  assert(card.headline !== "0")
+  assert(card.reflection.length > 20 && card.reflection.length <= 40)
+  assert.match(card.countdown, /^next estimate in /)
+}
+const seasonsCard = context.cardViewModel("seasons", expansion, life, now)
+assert(seasonsCard.headline !== "0")
+assert.match(seasonsCard.countdown, /^next season in /)
+const childhoodCard = context.cardViewModel("childhoodHours", expansion, life, now)
+assert.equal(childhoodCard.orientation, "social")
+assert.match(childhoodCard.headline, /h \d\dm$/)
+const workdaysCard = context.cardViewModel("workdays", expansion, life, now)
+assert.equal(workdaysCard.orientation, "practical")
+assert(Number(workdaysCard.headline.replace(/,/g, "")) > 500)
+const mobilityCard = context.cardViewModel("mobilityDays", expansion, life, now)
+assert.equal(mobilityCard.orientation, "health")
+assert(Number(mobilityCard.headline.replace(/,/g, "")) > 1000)
+
+const invalidRequired = parse({
+  metrics: {
+    childhoodHours: { enabled: true, childBirthDate: "" },
+    workdays: { enabled: true, retirementDate: "not-a-date" },
+    mobilityDays: { enabled: true, untilDate: "" }
+  }
+})
+assert.equal(invalidRequired.metrics.childhoodHours.enabled, false)
+assert.equal(invalidRequired.metrics.workdays.enabled, false)
+assert.equal(invalidRequired.metrics.mobilityDays.enabled, false)
+assert.equal(invalidRequired._issues.length, 3)
 
 const clamped = parse({
   life: { birthDate: "1990-01-01" },
