@@ -5,7 +5,7 @@
   "version": "0.5.0",
   "author": "Deca",
   "license": "MIT",
-  "description": "See the current period, the shape of today, and the time of a life",
+  "description": "A low-friction widget that help you keep in time with your regular routines and remind you about the volatility of life  ",
   "kinds": [
     "bar-widget"
   ],
@@ -14,7 +14,7 @@
   },
   "barWidget": {
     "displayName": "From Time to Time",
-    "description": "See now, today, and a lifetime in one calm timeline",
+    "description": "The present moment, the immediate 24 hours and your entire existence belong to the same single thread",
     "category": "Time",
     "allowMultiple": false,
     "defaultSection": "center"
