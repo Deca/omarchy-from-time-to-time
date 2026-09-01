@@ -1,8 +1,14 @@
 # From Time to Time
 
-A calm Omarchy bar timeline for seeing the current period, the shape of today, and the time of a life.
+This plugin began with the idea of having small and no-friction reminder of where I was in the day, since as a freelancer it is easy to drift away most common routines likelike working hours, exercise and sleep...and I guess that most of us are or have been there
+The plugin keeps those periods visible on the bar and can play a short chime when one starts or ends, it simply helps to keep me accountable
 
-It is an awareness instrument—not a task manager, productivity score, or medical prediction.
+The second part came after seeing DHH's life-progress bar
+I set too the horizon to 90 years and realized I was already a little past halfway through it...that caught me quite off guard and I began wondering not only how much time might be left but how many times I might still be able to do some ordinary things or interests that are important to me
+
+So I've created a collection of optional cards for recurring activities, relationships and events
+Their numbers are just rough estimates but the point is to generate some awareness in the volatiliy of life and perhaps the realization of not taking everything for granted
+
 
 ![From Time to Time panel](preview.png)
 
@@ -10,21 +16,19 @@ It is an awareness instrument—not a task manager, productivity score, or medic
 
 - Compact current-period label, progress, and remaining time
 - Full 24-hour schedule with overnight and weekday-aware periods
-- Compact life-horizon progress
+- Compact life-horizon progress baar
 - Perspective mode: one context-aware reflection drawn from Saturdays, sunsets, Christmases, and the weekly life rollover
-- Cards mode: a bounded two-column deck with fixed and per-opening rotating metrics
-- An original 52-mark personal-year strip that makes the current life-week tangible
+- Cards mode: a two-column deck with both fixed and rotating metrics cards
 - Optional start/end sounds with quiet hours
-- Startup, suspend/resume, and multi-monitor alert safeguards
-- Local JSON configuration with no account, telemetry, or network access
+- Startup, suspend/resume and multi-monitor alert safeguards
+- Local JSON configuration
 
 ## Requirements
 
 - Omarchy Quattro with the Quickshell-based Omarchy shell
 - `bash`, `flock`, and `pw-play` for transition alerts
-- Freedesktop sound files for the default cues, or custom readable sound paths
+- Freedesktop sound files for the default cues or custom readable sound paths
 
-The plugin runs unsandboxed with your normal user permissions. It does not use `sudo`, install packages, or contact remote services.
 
 ## Install
 
@@ -47,7 +51,7 @@ Then edit:
 ~/.config/omarchy/timeline.json
 ```
 
-Changes are loaded automatically. Without a personal configuration, the plugin remains usable in an empty state and displays setup guidance.
+Changes are loaded automatically. Without a personal configuration the plugin remains usable in an empty state and displays setup guidance
 
 ## Configure
 
@@ -63,7 +67,7 @@ Set `life.birthDate` to an ISO local date:
 }
 ```
 
-The complete sanitized schema is in [`timeline.example.json`](timeline.example.json). This is strict JSON, so explanatory notes use ignored keys such as `_note` rather than `//` comments.
+The complete sanitized schema is in [`timeline.example.json`](timeline.example.json). since is strict JSON so i've put explanatory notes  in  `_note`
 
 ### Schedule periods
 
@@ -80,7 +84,7 @@ The complete sanitized schema is in [`timeline.example.json`](timeline.example.j
 
 A period ending before it starts crosses midnight. `days` identifies the day on which the period starts. Supported names are `sun`, `mon`, `tue`, `wed`, `thu`, `fri`, and `sat`.
 
-Schedule entries should not overlap. If they do, the later entry wins the compact current-period view while both remain visible in the timeline.
+Schedule entries should not overlap, but if they do the later entry wins the compact current-period view while both remain visible in the timeline
 
 ### Transition alerts
 
@@ -101,13 +105,14 @@ Global alerts are configured under `alerts`:
 }
 ```
 
-Quiet hours may cross midnight. Each period plays alerts by default. Set `"sound": false` on an individual period, or give it `startSound` and `endSound` overrides.
+St `"sound": false` on an individual period or give it `startSound` and `endSound` overrides
 
-Alerts suppress cues on startup and configuration reload, stale cues after suspend or clock jumps, and duplicate playback from multiple monitors.
+Alerts suppress cues on startup and configuration reload, stale cues after suspend or clock jumps and duplicate playback from multiple monitors
 
 ### Visualization modes
 
-Perspective is the default. It chooses one featured reflection rather than presenting a dashboard of equally weighted counters. Context decides what deserves prominence: Christmas Day, the start of a personal life-week, Saturday, and local evening can each change the copy.
+Perspective mode is the default
+It chooses one featured reflection rather than presenting a dashboard of equally weighted counters. Context decides what deserves prominence: Christmas Day, the start of a personal life-week, Saturday, and local evening can each change the copy.
 
 Set `visualization.mode` to `cards` for a configurable deck:
 
@@ -129,7 +134,10 @@ The default card set is `lifeWeek`, `weekends`, `sunsets`, `christmas`, `heartbe
 
 #### Managing cards
 
-Each card has an `enabled` switch under `metrics`. Disabled cards cannot be fixed or selected for rotation. `visualization.cards.fixed` is an ordered list: those cards appear first and do not rotate. Every other enabled card is a candidate for the remaining slots. Change the list to choose a different balance, for example:
+Each card has an `enabled` switch under `metrics`. Disabled cards will not be fixed or selected for rotation
+`visualization.cards.fixed` are those cards that will appear first and do not rotate
+Every other enabled card is a candidate for the remaining random slots.
+You change the list to choose a different balance, for example:
 
 ```json
 {
@@ -150,16 +158,16 @@ Each card has an `enabled` switch under `metrics`. Disabled cards cannot be fixe
 }
 ```
 
-`familyMeals` estimates meals from now until `untilDate` at `timesPerWeek`. If `untilDate` is empty, it uses the life horizon; a date beyond the life horizon is capped there. This is a simple frequency estimate, not a promise that meals will happen. Use an explicit date when the relationship has a more meaningful shared horizon.
+Every metric also accepts optional `label` and `reflection` strings, to override the card default text. Empty values retain the built-in wording
+Keep personal copy in `~/.config/omarchy/timeline.json` rather than editing `Model.js`. See [`CARDS.md`](CARDS.md#personalizing-card-copy) for further examples
 
-Every metric also accepts optional `label` and `reflection` strings. These override only the card copy; empty values retain the built-in wording. Keep personal copy in `~/.config/omarchy/timeline.json` rather than editing `Model.js`. See [`CARDS.md`](CARDS.md#personalizing-card-copy) for an example.
-
-Changes reload automatically. Open the panel after changing configuration, or press `R` while focused / middle-click the bar to reload. A bad mode, non-positive or fractional card count, unknown ID, disabled fixed ID, duplicate, or excess fixed ID is ignored and shown as a configuration issue in the panel. If fewer enabled cards exist than requested slots, fewer cards are shown.
+Changes reload automatically, reopen the panel after changing configuration or press `R` while focused / middle-click the bar to reload.
+A bad mode, non-positive or fractional card count, unknown ID, disabled fixed ID, duplicate or excess fixed ID is ignored and shown as a configuration issue in the panel
+If fewer enabled cards exist than requested slots then fewer cards are shown
 
 [`METRICS.md`](METRICS.md) remains a research catalogue and admission test for future ideas—not a menu of promised features.
 
 ## Interactions
-
 - Left click: open or close the panel
 - Middle click: reload configuration
 - Escape: close the panel

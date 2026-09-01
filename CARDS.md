@@ -69,6 +69,13 @@ Missing, empty, or whitespace-only values keep the built-in copy. Overrides affe
 
 `heartbeats` and `breaths` show the full rounded estimate with comma grouping rather than abbreviated `K`, `M`, or `B` values.
 
+
+`familyMeals` estimates meals from now until `untilDate` at `timesPerWeek`
+If `untilDate` is empty it uses the life horizon by defualt
+This is is of course a simple frequency system that you have to estimate
+
+
+
 ### Astronomical events
 
 ```json

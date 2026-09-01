@@ -84,27 +84,27 @@ assert.equal(context.lifeStats("", 90, new Date()).valid, false)
 const ordinary = context.perspective(config, life, new Date(2026, 7, 28, 12, 0))
 assert.equal(ordinary.kind, "weekends")
 assert.match(ordinary.headline, /Saturdays remaining$/)
-assert.equal(ordinary.context, "The next one is in 1 day.")
+assert.equal(ordinary.context, "The next one is in 1 day")
 assert.match(ordinary.supporting, /sunsets · 54 Christmases$/)
 
 const saturday = context.perspective(config, life, new Date(2026, 7, 29, 12, 0))
 assert.equal(saturday.kind, "weekends")
-assert.equal(saturday.context, "One of them is already here.")
+assert.equal(saturday.context, "One of them is already here")
 
 const evening = context.perspective(config, life, new Date(2026, 7, 28, 18, 0))
 assert.equal(evening.kind, "sunsets")
-assert.equal(evening.context, "One of them belongs to today.")
+assert.equal(evening.context, "One of them belongs to today")
 
 const christmas = context.perspective(config, life, new Date(2026, 11, 25, 12, 0))
 assert.equal(christmas.kind, "christmas")
 assert.equal(christmas.headline, "54 Christmases in this horizon")
-assert.equal(christmas.context, "This is one of them.")
+assert.equal(christmas.context, "This is one of them")
 
 const rolloverDate = new Date(2026, 7, 24, 8, 0)
 const rollover = context.perspective(config, life, rolloverDate)
 assert.equal(rollover.kind, "week")
-assert.match(rollover.headline, /^Week [\d,]+ ended\.$/)
-assert.equal(rollover.context, "A new week begins.")
+assert.match(rollover.headline, /^Week [\d,]+ ended$/)
+assert.equal(rollover.context, "A new week begins")
 const noRollover = parse({
   life: { birthDate: "1990-01-01" },
   metrics: { lifeWeek: { enabled: false } }
@@ -160,7 +160,7 @@ const familyMeals = relationshipDeck.find(card => card.id === "familyMeals")
 assert(familyMeals)
 assert.equal(familyMeals.kind, "number")
 assert.equal(familyMeals.label, "Estimated remaining family meals")
-assert.match(familyMeals.detail, /At 3 per week until 2030-01-01\./)
+assert.match(familyMeals.detail, /At 3 per week until 2030-01-01/)
 assert.match(familyMeals.countdown, /^next estimate in /)
 assert(Number(familyMeals.headline.replace(/,/g, "")) > 500)
 
@@ -217,13 +217,13 @@ assert.equal(personalCard.totalInHorizon, 52)
 assert(personalCard.currentInHorizon > 26 && personalCard.currentInHorizon < 29)
 
 const reflections = {
-  weekends: "You don't need to fill a free day.",
-  sunsets: "The day was worth noticing.",
-  christmas: "Tradition is ordinary time, remembered.",
-  heartbeats: "The body keeps time on its own.",
-  breaths: "Most of life arrives this quietly.",
-  wakefulHours: "Attention, not hours, makes a day.",
-  familyMeals: "A meal is time made visible between people."
+  weekends: "You don't need to fill a free day",
+  sunsets: "The day was worth noticing",
+  christmas: "Tradition is ordinary time, remembered",
+  heartbeats: "The body keeps time on its own",
+  breaths: "Most of life arrives this quietly",
+  wakefulHours: "Attention and not hours makes a day",
+  familyMeals: "A meal is time made visible between people"
 }
 for (const id of Object.keys(reflections)) {
   const card = context.cardViewModel(id, relationship, life, now)
@@ -358,7 +358,7 @@ const defaultCopyConfig = parse({
 })
 const defaultDoomsdayCard = context.cardViewModel("doomsday", defaultCopyConfig, life, now)
 assert.equal(defaultDoomsdayCard.label, "Days until doomsday")
-assert.equal(defaultDoomsdayCard.reflection, "Stock the bunker before the sirens.")
+assert.equal(defaultDoomsdayCard.reflection, "Stock the bunker before the sirens")
 
 const invalidRequired = parse({
   metrics: {
