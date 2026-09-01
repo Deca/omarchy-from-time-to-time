@@ -5,31 +5,31 @@ var WEEK_MS = 7 * DAY_MS
 var YEAR_MS = 365.2425 * DAY_MS
 var RECURRING_CARD_SPECS = [
   { id: "parentVisits", rateKey: "timesPerYear", defaultRate: 6, periodMs: YEAR_MS,
-    label: "Estimated visits with parents ahead", reflection: "Presence cannot be saved for later.", orientation: "social" },
+    label: "Estimated remaining visits with parents", reflection: "Presence cannot be saved for later.", orientation: "social" },
   { id: "partnerEvenings", rateKey: "timesPerWeek", defaultRate: 2, periodMs: WEEK_MS,
-    label: "Estimated evenings together ahead", reflection: "Shared lives grow on ordinary nights.", orientation: "social" },
+    label: "Estimated remaining evenings together", reflection: "Shared lives grow on ordinary nights.", orientation: "social" },
   { id: "quietMornings", rateKey: "timesPerWeek", defaultRate: 2, periodMs: WEEK_MS,
-    label: "Estimated quiet mornings ahead", reflection: "Not every morning needs an agenda.", orientation: "philosophical" },
+    label: "Estimated remaining quiet mornings", reflection: "Not every morning needs an agenda.", orientation: "philosophical" },
   { id: "books", rateKey: "booksPerMonth", defaultRate: 1, periodMs: YEAR_MS / 12,
     label: "Estimated books still readable", reflection: "Your unread future has a hard cover.", orientation: "intellectual" },
   { id: "oceanVisits", rateKey: "timesPerYear", defaultRate: 2, periodMs: YEAR_MS,
-    label: "Estimated ocean visits ahead", reflection: "The horizon asks nothing from you.", orientation: "nature" },
+    label: "Estimated remaining ocean visits", reflection: "The horizon asks nothing from you.", orientation: "nature" },
   { id: "creativeSessions", rateKey: "timesPerWeek", defaultRate: 2, periodMs: WEEK_MS,
-    label: "Estimated creative sessions ahead", reflection: "Make it before you explain it.", orientation: "creative" },
+    label: "Estimated remaining creative sessions", reflection: "Make it before you explain it.", orientation: "creative" },
   { id: "trainingSessions", rateKey: "timesPerWeek", defaultRate: 3, periodMs: WEEK_MS,
-    label: "Estimated training sessions ahead", reflection: "Strength arrives by returning.", orientation: "physical" },
+    label: "Estimated remaining training sessions", reflection: "Strength arrives by returning.", orientation: "physical" },
   { id: "runningSessions", rateKey: "timesPerWeek", defaultRate: 3, periodMs: WEEK_MS, requiresUntilDate: true,
     label: "Runs before your knees object", reflection: "One day, this will be the last run.", orientation: "physical" },
   { id: "hikes", rateKey: "timesPerMonth", defaultRate: 2, periodMs: YEAR_MS / 12,
-    label: "Estimated hikes ahead", reflection: "The path ignores your calendar.", orientation: "nature" },
+    label: "Estimated remaining hikes", reflection: "The path ignores your calendar.", orientation: "nature" },
   { id: "smallBets", rateKey: "timesPerYear", defaultRate: 4, periodMs: YEAR_MS,
     label: "Small bets still available", reflection: "Keep the bet small enough to learn.", orientation: "entrepreneurial" },
   { id: "nightLife", rateKey: "nightsPerMonth", defaultRate: 1, periodMs: YEAR_MS / 12, requiresUntilDate: true,
     label: "Wild nights before life gets sensible", reflection: "Adulthood has a last call, too.", orientation: "social" },
   { id: "volunteerDays", rateKey: "timesPerMonth", defaultRate: 1, periodMs: YEAR_MS / 12,
-    label: "Estimated volunteer days ahead", reflection: "Public life begins by showing up.", orientation: "civic" },
+    label: "Estimated remaining volunteer days", reflection: "Public life begins by showing up.", orientation: "civic" },
   { id: "journeys", rateKey: "timesPerYear", defaultRate: 2, periodMs: YEAR_MS,
-    label: "Estimated journeys ahead", reflection: "Leave room for somewhere unknown.", orientation: "exploratory" }
+    label: "Estimated remaining journeys", reflection: "Leave room for somewhere unknown.", orientation: "exploratory" }
 ]
 var CARD_METRIC_IDS = [
   "lifeWeek", "weekends", "sunsets", "christmas", "heartbeats", "breaths",
@@ -716,8 +716,8 @@ function defaultCardViewModel(id, config, life, now) {
     var weekends = countWeekdayUntil(now, life.boundary, 6)
     var nextSaturday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + ((6 - now.getDay() + 7) % 7 || 7), 0, 0, 0, 0)
     return {
-      id: id, kind: "number", headline: groupedInteger(weekends), label: "Saturdays ahead",
-      detail: now.getDay() === 6 ? "One of them is already here." : "The next one is still ahead.",
+      id: id, kind: "number", headline: groupedInteger(weekends), label: "Saturdays remaining",
+      detail: now.getDay() === 6 ? "One of them is already here." : "The next one is yet to come.",
       reflection: "You don't need to fill a free day.",
       countdown: nextSaturday < life.boundary
         ? "next one in " + formatCountdown(nextSaturday.getTime() - now.getTime())
@@ -728,7 +728,7 @@ function defaultCardViewModel(id, config, life, now) {
     var nextDay = dayStart(now, 1)
     return {
       id: id, kind: "number", headline: groupedInteger(remainingCalendarDays(now, life.boundary)),
-      label: "Sunsets ahead", detail: "One calendar-day opportunity at a time.",
+      label: "Sunsets remaining", detail: "One calendar-day opportunity at a time.",
       reflection: "The day was worth noticing.",
       countdown: nextDay < life.boundary
         ? "next count in " + formatCountdown(nextDay.getTime() - now.getTime())
@@ -742,7 +742,7 @@ function defaultCardViewModel(id, config, life, now) {
     return {
       id: id, kind: "number", headline: groupedInteger(christmases),
       label: "Christmases in this horizon",
-      detail: now.getMonth() === 11 && now.getDate() === 25 ? "This is one of them." : "Each one is still ahead.",
+      detail: now.getMonth() === 11 && now.getDate() === 25 ? "This is one of them." : "Each one is yet to come.",
       reflection: "Tradition is ordinary time, remembered.",
       countdown: nextChristmas < life.boundary
         ? "next one in " + formatCountdown(nextChristmas.getTime() - now.getTime())
@@ -753,7 +753,7 @@ function defaultCardViewModel(id, config, life, now) {
     var heartbeatRate = metrics.heartbeats.beatsPerMinute / 60000
     return {
       id: id, kind: "number", headline: groupedInteger(life.remainingMinutes * metrics.heartbeats.beatsPerMinute),
-      label: "Estimated heartbeats ahead", detail: "At " + metrics.heartbeats.beatsPerMinute + " beats per minute.",
+      label: "Estimated remaining heartbeats", detail: "At " + metrics.heartbeats.beatsPerMinute + " beats per minute.",
       reflection: "The body keeps time on its own.",
       countdown: unitCountdown(remainingMilliseconds * heartbeatRate, "heartbeat", "heartbeats")
     }
@@ -762,7 +762,7 @@ function defaultCardViewModel(id, config, life, now) {
     var breathRate = metrics.breaths.breathsPerMinute / 60000
     return {
       id: id, kind: "number", headline: groupedInteger(life.remainingMinutes * metrics.breaths.breathsPerMinute),
-      label: "Estimated breaths ahead", detail: "At " + metrics.breaths.breathsPerMinute + " breaths per minute.",
+      label: "Estimated remaining breaths", detail: "At " + metrics.breaths.breathsPerMinute + " breaths per minute.",
       reflection: "Most of life arrives this quietly.",
       countdown: unitCountdown(remainingMilliseconds * breathRate, "breath", "breaths")
     }
@@ -773,7 +773,7 @@ function defaultCardViewModel(id, config, life, now) {
     var wakefulRate = awakeRatio / 60000
     return {
       id: id, kind: "number", headline: formatHoursMinutes(wakefulMinutes),
-      label: "Estimated waking time ahead", detail: "Allowing " + metrics.wakefulHours.sleepHoursPerDay + " hours of sleep per day.",
+      label: "Estimated remaining waking time", detail: "Allowing " + metrics.wakefulHours.sleepHoursPerDay + " hours of sleep per day.",
       reflection: "Attention, not hours, makes a day.",
       countdown: awakeRatio > 0
         ? "next minute in " + formatCountdown(nextRoundedDrop(remainingMilliseconds, wakefulRate))
@@ -791,7 +791,7 @@ function defaultCardViewModel(id, config, life, now) {
       : " across this life horizon"
     return {
       id: id, kind: "number", headline: groupedInteger(meals),
-      label: "Estimated family meals ahead",
+      label: "Estimated remaining family meals",
       detail: "At " + metrics.familyMeals.timesPerWeek + " per week" + mealHorizon + ".",
       reflection: "A meal is time made visible between people.",
       countdown: metrics.familyMeals.timesPerWeek > 0
@@ -803,7 +803,7 @@ function defaultCardViewModel(id, config, life, now) {
     var seasons = seasonStartsUntil(now, life.boundary)
     return {
       id: id, kind: "number", orientation: "nature", headline: groupedInteger(seasons.length),
-      label: "Season changes ahead", detail: "Meteorological seasons in this life horizon.",
+      label: "Season changes remaining", detail: "Meteorological seasons in this life horizon.",
       reflection: "The world changes without asking.",
       countdown: seasons.length > 0
         ? "next season in " + formatCountdown(seasons[0].getTime() - now.getTime())
@@ -853,7 +853,7 @@ function defaultCardViewModel(id, config, life, now) {
     return {
       id: id, kind: "number", orientation: "practical",
       headline: groupedInteger(workRemainingMs * workdaysPerMillisecond),
-      label: "Estimated workdays ahead", detail: metrics.workdays.daysPerWeek + " days per week · "
+      label: "Estimated remaining workdays", detail: metrics.workdays.daysPerWeek + " days per week · "
         + metrics.workdays.vacationWeeksPerYear + " vacation weeks per year.",
       reflection: "A career is long. A workday is a day.",
       countdown: workdaysPerMillisecond > 0 && workRemainingMs > 0
@@ -968,7 +968,7 @@ function perspective(config, life, now) {
     return {
       visible: true,
       kind: "weekends",
-      headline: groupedInteger(counts.weekends) + " Saturdays ahead",
+      headline: groupedInteger(counts.weekends) + " Saturdays remaining",
       context: "One of them is already here.",
       supporting: metricSummary(metrics, counts, "weekends")
     }
@@ -978,7 +978,7 @@ function perspective(config, life, now) {
     return {
       visible: true,
       kind: "sunsets",
-      headline: groupedInteger(counts.sunsets) + " sunsets ahead",
+      headline: groupedInteger(counts.sunsets) + " sunsets remaining",
       context: "One of them belongs to today.",
       supporting: metricSummary(metrics, counts, "sunsets")
     }
@@ -990,7 +990,7 @@ function perspective(config, life, now) {
     return {
       visible: true,
       kind: "weekends",
-      headline: groupedInteger(counts.weekends) + " Saturdays ahead",
+      headline: groupedInteger(counts.weekends) + " Saturdays remaining",
       context: "The next one is in " + daysUntilSaturday + (daysUntilSaturday === 1 ? " day." : " days."),
       supporting: metricSummary(metrics, counts, "weekends")
     }
@@ -1000,7 +1000,7 @@ function perspective(config, life, now) {
     return {
       visible: true,
       kind: "sunsets",
-      headline: groupedInteger(counts.sunsets) + " sunsets ahead",
+      headline: groupedInteger(counts.sunsets) + " sunsets remaining",
       context: "One of them belongs to today.",
       supporting: metricSummary(metrics, counts, "sunsets")
     }
@@ -1011,7 +1011,7 @@ function perspective(config, life, now) {
       visible: true,
       kind: "christmas",
       headline: groupedInteger(counts.christmas) + " Christmases in this horizon",
-      context: "Each one is still ahead.",
+      context: "Each one is yet to come.",
       supporting: ""
     }
   }

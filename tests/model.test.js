@@ -83,7 +83,7 @@ assert.equal(context.lifeStats("", 90, new Date()).valid, false)
 // Perspective behavior remains contextual and is the default mode.
 const ordinary = context.perspective(config, life, new Date(2026, 7, 28, 12, 0))
 assert.equal(ordinary.kind, "weekends")
-assert.match(ordinary.headline, /Saturdays ahead$/)
+assert.match(ordinary.headline, /Saturdays remaining$/)
 assert.equal(ordinary.context, "The next one is in 1 day.")
 assert.match(ordinary.supporting, /sunsets · 54 Christmases$/)
 
@@ -159,7 +159,7 @@ assert.equal(relationshipDeck.length, 2)
 const familyMeals = relationshipDeck.find(card => card.id === "familyMeals")
 assert(familyMeals)
 assert.equal(familyMeals.kind, "number")
-assert.equal(familyMeals.label, "Estimated family meals ahead")
+assert.equal(familyMeals.label, "Estimated remaining family meals")
 assert.match(familyMeals.detail, /At 3 per week until 2030-01-01\./)
 assert.match(familyMeals.countdown, /^next estimate in /)
 assert(Number(familyMeals.headline.replace(/,/g, "")) > 500)
@@ -225,8 +225,11 @@ const reflections = {
   wakefulHours: "Attention, not hours, makes a day.",
   familyMeals: "A meal is time made visible between people."
 }
-for (const id of Object.keys(reflections))
-  assert.equal(context.cardViewModel(id, relationship, life, now).reflection, reflections[id])
+for (const id of Object.keys(reflections)) {
+  const card = context.cardViewModel(id, relationship, life, now)
+  assert.equal(card.reflection, reflections[id])
+  assert.doesNotMatch(card.label, /\bahead\b/i)
+}
 
 const heartbeatCard = context.cardViewModel("heartbeats", relationship, life, now)
 const breathCard = context.cardViewModel("breaths", relationship, life, now)
@@ -264,6 +267,7 @@ for (const spec of Array.from(context.RECURRING_CARD_SPECS)) {
   assert.equal(card.orientation, spec.orientation)
   assert(card.headline !== "0")
   assert(card.reflection.length > 20 && card.reflection.length <= 40)
+  assert.doesNotMatch(card.label, /\bahead\b/i)
   assert.match(card.countdown, /^next estimate in /)
 }
 assert.match(context.cardViewModel("books", expansion, life, now).detail, /At 2 per month/)
