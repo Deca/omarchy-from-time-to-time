@@ -825,7 +825,7 @@ function defaultCardViewModel(id, config, life, now) {
     var astronomicalNextDay = dayStart(now, 1)
     return {
       id: id, kind: "number", orientation: "cosmic", headline: groupedInteger(astronomicalDays),
-      label: astronomicalEvent.name, detail: "Next configured event · " + astronomicalEvent.date,
+      label: "Days until " + astronomicalEvent.name, detail: "Next configured event · " + astronomicalEvent.date,
       reflection: "The sky keeps a longer calendar",
       countdown: astronomicalDays === 0
         ? "today"

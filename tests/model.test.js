@@ -292,7 +292,7 @@ assert.deepEqual(
 )
 const astronomyCard = context.cardViewModel("astronomicalEvents", astronomyConfig, life, now)
 assert.equal(astronomyCard.orientation, "cosmic")
-assert.equal(astronomyCard.label, "Next total eclipse")
+assert.equal(astronomyCard.label, "Days until Next total eclipse")
 assert.equal(astronomyCard.detail, "Next configured event · 2027-08-02")
 assert(Number(astronomyCard.headline.replace(/,/g, "")) > 300)
 const astronomyOnEventDay = context.cardViewModel(
@@ -301,7 +301,7 @@ assert.equal(astronomyOnEventDay.headline, "0")
 assert.equal(astronomyOnEventDay.countdown, "today")
 const astronomyAfterEvent = context.cardViewModel(
   "astronomicalEvents", astronomyConfig, life, new Date(2027, 7, 3, 12, 0))
-assert.equal(astronomyAfterEvent.label, "Later close approach")
+assert.equal(astronomyAfterEvent.label, "Days until Later close approach")
 
 const invalidAstronomy = parse({
   metrics: {

@@ -76,14 +76,14 @@ Missing, empty, or whitespace-only values keep the built-in copy. Overrides affe
   "astronomicalEvents": {
     "enabled": true,
     "events": [
-      { "name": "Total solar eclipse", "date": "2027-08-02" },
+      { "name": "Global total solar eclipse", "date": "2027-08-02" },
       { "name": "Asteroid Apophis close approach", "date": "2029-04-13" }
     ]
   }
 }
 ```
 
-Events are a static, user-maintained list. The plugin sorts them by local calendar date, skips past entries, shows the nearest event within the life horizon, includes an event occurring today, and advances automatically afterward. It does not calculate, discover, fetch, or update astronomical events, nor does it infer location or visibility. Configure events relevant where you live and periodically review their dates.
+Events are a static, user-maintained list. The card pairs its number with `Days until [event name]`; for example, `335` means 335 days until the event, not 335 events. The plugin sorts entries by local calendar date, skips past entries, shows the nearest event within the life horizon, includes an event occurring today, and advances automatically afterward. It does not calculate, discover, fetch, or update astronomical events, nor does it infer location or visibility. Mark globally sourced events as global, configure events relevant where you live, and periodically review their dates.
 
 The [NASA GSFC solar eclipse catalogue](https://eclipse.gsfc.nasa.gov/SEcat5/SE2001-2100.html) and [NASA's Apophis page](https://science.nasa.gov/solar-system/asteroids/apophis/) are useful primary sources for the examples. Invalid and duplicate entries are reported in the panel. Optional metric-level `label` and `reflection` values override the event name and built-in reflection respectively.
 
