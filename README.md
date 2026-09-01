@@ -26,7 +26,7 @@ Their numbers are just rough estimates but the point is to generate some awarene
 ## Requirements
 
 - Omarchy Quattro with the Quickshell-based Omarchy shell
-- `bash`, `flock`, and `pw-play` for transition alerts
+- `bash`, GNU coreutils (`sha256sum`, `stat`, and `timeout`), and `pw-play` for transition alerts
 - Freedesktop sound files for the default cues or custom readable sound paths
 
 

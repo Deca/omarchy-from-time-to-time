@@ -2,7 +2,9 @@
 set -euo pipefail
 
 # One transition may be observed by a timeline instance on every monitor.
-# Claim its deterministic event key under a lock before playing anything.
+# Claim a deterministic marker in the owner-only runtime directory before
+# playing anything. mkdir is atomic and never follows a pre-planted object at
+# the marker path, so duplicate observers and unsafe paths both fail closed.
 event_key=${1:-}
 event_kind=${2:-}
 start_sound=${3:-}
@@ -13,19 +15,27 @@ quiet_end=${7:-07:00}
 
 [[ -n $event_key ]] || exit 0
 
-state_root=${XDG_STATE_HOME:-"$HOME/.local/state"}/omarchy
-state_file=$state_root/timeline-alert.state
-lock_file=$state_root/timeline-alert.lock
-mkdir -p "$state_root"
+umask 077
+runtime_root=${XDG_RUNTIME_DIR:-}
+[[ -n $runtime_root && -d $runtime_root && ! -L $runtime_root && -O $runtime_root ]] || exit 0
+[[ $(stat -c '%a' -- "$runtime_root" 2>/dev/null) == 700 ]] || exit 0
 
-exec 9>"$lock_file"
-flock 9
-previous_key=""
-[[ -f $state_file ]] && IFS= read -r previous_key < "$state_file" || true
-[[ $previous_key == "$event_key" ]] && exit 0
-printf '%s\n' "$event_key" > "$state_file.tmp.$$"
-mv -f "$state_file.tmp.$$" "$state_file"
-flock -u 9
+state_root=$runtime_root/from-time-to-time-alerts
+if [[ -e $state_root || -L $state_root ]]; then
+  [[ -d $state_root && ! -L $state_root && -O $state_root ]] || exit 0
+else
+  mkdir -m 700 -- "$state_root" 2>/dev/null || exit 0
+fi
+chmod 700 -- "$state_root" 2>/dev/null || exit 0
+[[ $(stat -c '%a' -- "$state_root" 2>/dev/null) == 700 ]] || exit 0
+
+event_hash=$(printf '%s' "$event_key" | sha256sum)
+event_hash=${event_hash%% *}
+[[ $event_hash =~ ^[[:xdigit:]]{64}$ ]] || exit 0
+marker=$state_root/$event_hash
+mkdir -m 700 -- "$marker" 2>/dev/null || exit 0
+[[ -d $marker && ! -L $marker && -O $marker ]] || exit 0
+[[ $(stat -c '%a' -- "$marker" 2>/dev/null) == 700 ]] || exit 0
 
 minutes_for_time() {
   local value=$1 hour minute
@@ -53,7 +63,7 @@ fi
 play() {
   local sound=$1
   [[ -n $sound && -r $sound ]] || return 0
-  pw-play "$sound" >/dev/null 2>&1 || true
+  timeout --signal=TERM --kill-after=1s 5s pw-play -- "$sound" >/dev/null 2>&1 || true
 }
 
 case "$event_kind" in
