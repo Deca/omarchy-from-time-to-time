@@ -1,13 +1,13 @@
 # From Time to Time
 
-This plugin began with the idea of having small and no-friction reminder of where I was in the day, since as a freelancer it is easy to drift away most common routines likelike working hours, exercise and sleep...and I guess that most of us are or have been there
+This plugin began with the idea of having small and no-friction reminder of where I was in the day, since as a freelancer it is easy to drift away most common routines like working hours, exercise and sleep...and I guess that most of us are or have been there
 The plugin keeps those periods visible on the bar and can play a short chime when one starts or ends, it simply helps to keep me accountable
 
 The second part came after seeing DHH's life-progress bar
 I set too the horizon to 90 years and realized I was already a little past halfway through it...that caught me quite off guard and I began wondering not only how much time might be left but how many times I might still be able to do some ordinary things or interests that are important to me
 
 So I've created a collection of optional cards for recurring activities, relationships and events
-Their numbers are just rough estimates but the point is to generate some awareness in the volatiliy of life and perhaps the realization of not taking everything for granted
+Their numbers are just rough estimates but the point is to generate some awareness in the volatility of life and perhaps the realization of not taking everything for granted
 
 
 ![From Time to Time panel](preview.png)
@@ -16,7 +16,7 @@ Their numbers are just rough estimates but the point is to generate some awarene
 
 - Compact current-period label, progress, and remaining time
 - Full 24-hour schedule with overnight and weekday-aware periods
-- Compact life-horizon progress baar
+- Compact life-horizon progress bar
 - Perspective mode: one context-aware reflection drawn from Saturdays, sunsets, Christmases, and the weekly life rollover
 - Cards mode: a two-column deck with both fixed and rotating metrics cards
 - Optional start/end sounds with quiet hours
