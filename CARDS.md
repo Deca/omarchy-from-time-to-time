@@ -33,6 +33,25 @@ The strongest cards describe an opportunity that exists only while a relationshi
 - Dates use local `YYYY-MM-DD` values.
 - Rates describe observed habits, not targets. Set a rate to `0` when no estimate is useful.
 
+## Personalizing card copy
+
+Every metric accepts optional `label` and `reflection` overrides in `~/.config/omarchy/timeline.json`:
+
+```json
+{
+  "metrics": {
+    "doomsday": {
+      "enabled": true,
+      "untilDate": "2035-07-18",
+      "label": "Days until the grid goes dark",
+      "reflection": "Beans, batteries, and bad decisions"
+    }
+  }
+}
+```
+
+Missing, empty, or whitespace-only values keep the built-in copy. Overrides affect presentation only: the plugin continues to own the headline, detail, countdown, and calculation. Copy is rendered as plain text. Keep personal overrides in `timeline.json`, not `Model.js`, so plugin updates remain fast-forwardable.
+
 ## Core cards
 
 | ID | Meaning | Parameters |
@@ -46,6 +65,27 @@ The strongest cards describe an opportunity that exists only while a relationshi
 | `wakefulHours` | Estimated waking allocation | `sleepHoursPerDay` |
 | `familyMeals` | Estimated shared family meals | `timesPerWeek`, optional `untilDate` |
 | `seasons` | Meteorological season changes | none |
+| `astronomicalEvents` | Days until the nearest configured future astronomical event | `events` array of `name` and `date` |
+
+`heartbeats` and `breaths` show the full rounded estimate with comma grouping rather than abbreviated `K`, `M`, or `B` values.
+
+### Astronomical events
+
+```json
+{
+  "astronomicalEvents": {
+    "enabled": true,
+    "events": [
+      { "name": "Total solar eclipse", "date": "2027-08-02" },
+      { "name": "Asteroid Apophis close approach", "date": "2029-04-13" }
+    ]
+  }
+}
+```
+
+Events are a static, user-maintained list. The plugin sorts them by local calendar date, skips past entries, shows the nearest event within the life horizon, includes an event occurring today, and advances automatically afterward. It does not calculate, discover, fetch, or update astronomical events, nor does it infer location or visibility. Configure events relevant where you live and periodically review their dates.
+
+The [NASA GSFC solar eclipse catalogue](https://eclipse.gsfc.nasa.gov/SEcat5/SE2001-2100.html) and [NASA's Apophis page](https://science.nasa.gov/solar-system/asteroids/apophis/) are useful primary sources for the examples. Invalid and duplicate entries are reported in the panel. Optional metric-level `label` and `reflection` values override the event name and built-in reflection respectively.
 
 ## Relationship and life-stage cards
 

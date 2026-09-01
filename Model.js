@@ -33,7 +33,8 @@ var RECURRING_CARD_SPECS = [
 ]
 var CARD_METRIC_IDS = [
   "lifeWeek", "weekends", "sunsets", "christmas", "heartbeats", "breaths",
-  "wakefulHours", "familyMeals", "seasons", "childhoodDays", "workdays", "daysUntilWobbly", "doomsday"
+  "wakefulHours", "familyMeals", "seasons", "astronomicalEvents", "childhoodDays", "workdays",
+  "daysUntilWobbly", "doomsday"
 ]
 for (var recurringIndex = 0; recurringIndex < RECURRING_CARD_SPECS.length; recurringIndex++)
   CARD_METRIC_IDS.push(RECURRING_CARD_SPECS[recurringIndex].id)
@@ -50,6 +51,7 @@ function defaultMetrics() {
     wakefulHours: { enabled: true, sleepHoursPerDay: 8 },
     familyMeals: { enabled: false, timesPerWeek: 3, untilDate: "" },
     seasons: { enabled: false },
+    astronomicalEvents: { enabled: false, events: [] },
     childhoodDays: { enabled: false, untilDate: "" },
     workdays: { enabled: false, retirementDate: "", daysPerWeek: 5, vacationWeeksPerYear: 5 },
     daysUntilWobbly: { enabled: false, untilDate: "" },
@@ -88,11 +90,41 @@ function boundedNumber(value, fallback, minimum, maximum) {
   return isFinite(number) ? Math.max(minimum, Math.min(maximum, number)) : fallback
 }
 
+function normalizedCardCopy(value) {
+  return typeof value === "string" ? value.trim() : ""
+}
+
+function normalizedAstronomicalEvents(value, issues, reportIssues) {
+  if (!Array.isArray(value)) return []
+  var events = []
+  var seen = []
+  for (var i = 0; i < value.length; i++) {
+    var source = value[i]
+    var name = source && typeof source.name === "string" ? source.name.trim() : ""
+    var date = source && typeof source.date === "string" ? source.date : ""
+    if (!name || !parseLocalDate(date)) {
+      if (reportIssues) issues.push("astronomicalEvents.events[" + i + "] requires a name and YYYY-MM-DD date")
+      continue
+    }
+    var key = date + "\n" + name
+    if (seen.indexOf(key) >= 0) {
+      if (reportIssues) issues.push("Duplicate astronomical event ignored: " + name + " on " + date)
+      continue
+    }
+    seen.push(key)
+    events.push({ name: name, date: date })
+  }
+  events.sort(function(a, b) { return parseLocalDate(a.date) - parseLocalDate(b.date) })
+  return events
+}
+
 function normalizeMetric(raw, defaults) {
   var source = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {}
   var result = {}
   for (var key in defaults) result[key] = defaults[key]
   result.enabled = source.enabled === undefined ? defaults.enabled : source.enabled === true
+  result.label = normalizedCardCopy(source.label)
+  result.reflection = normalizedCardCopy(source.reflection)
   return { source: source, result: result }
 }
 
@@ -218,6 +250,19 @@ function parseConfig(text) {
   config.metrics.familyMeals = metric.result
 
   config.metrics.seasons = normalizeMetric(rawMetrics.seasons, config.metrics.seasons).result
+
+  metric = normalizeMetric(rawMetrics.astronomicalEvents, config.metrics.astronomicalEvents)
+  var rawAstronomicalEvents = metric.source.events === undefined ? metric.result.events : metric.source.events
+  metric.result.events = normalizedAstronomicalEvents(
+    rawAstronomicalEvents, config._issues, metric.result.enabled)
+  if (metric.result.enabled && !Array.isArray(rawAstronomicalEvents)) {
+    config._issues.push("astronomicalEvents.events must be an array")
+    metric.result.enabled = false
+  } else if (metric.result.enabled && metric.result.events.length === 0) {
+    config._issues.push("astronomicalEvents requires at least one valid event")
+    metric.result.enabled = false
+  }
+  config.metrics.astronomicalEvents = metric.result
 
   var deadlineMetricIds = ["childhoodDays", "daysUntilWobbly", "doomsday"]
   for (var deadlineIndex = 0; deadlineIndex < deadlineMetricIds.length; deadlineIndex++) {
@@ -634,7 +679,16 @@ function seasonStartsUntil(now, boundary) {
   return starts
 }
 
-function cardViewModel(id, config, life, now) {
+function nextAstronomicalEvent(events, life, now) {
+  var today = calendarDayNumber(now)
+  for (var i = 0; i < events.length; i++) {
+    var date = parseLocalDate(events[i].date)
+    if (date && calendarDayNumber(date) >= today && date < life.boundary) return events[i]
+  }
+  return null
+}
+
+function defaultCardViewModel(id, config, life, now) {
   var metrics = config.metrics
   var remainingMilliseconds = Math.max(0, life.boundary.getTime() - now.getTime())
   if (id === "lifeWeek") {
@@ -698,7 +752,7 @@ function cardViewModel(id, config, life, now) {
   if (id === "heartbeats") {
     var heartbeatRate = metrics.heartbeats.beatsPerMinute / 60000
     return {
-      id: id, kind: "number", headline: compactNumber(life.remainingMinutes * metrics.heartbeats.beatsPerMinute),
+      id: id, kind: "number", headline: groupedInteger(life.remainingMinutes * metrics.heartbeats.beatsPerMinute),
       label: "Estimated heartbeats ahead", detail: "At " + metrics.heartbeats.beatsPerMinute + " beats per minute.",
       reflection: "The body keeps time on its own.",
       countdown: unitCountdown(remainingMilliseconds * heartbeatRate, "heartbeat", "heartbeats")
@@ -707,7 +761,7 @@ function cardViewModel(id, config, life, now) {
   if (id === "breaths") {
     var breathRate = metrics.breaths.breathsPerMinute / 60000
     return {
-      id: id, kind: "number", headline: compactNumber(life.remainingMinutes * metrics.breaths.breathsPerMinute),
+      id: id, kind: "number", headline: groupedInteger(life.remainingMinutes * metrics.breaths.breathsPerMinute),
       label: "Estimated breaths ahead", detail: "At " + metrics.breaths.breathsPerMinute + " breaths per minute.",
       reflection: "Most of life arrives this quietly.",
       countdown: unitCountdown(remainingMilliseconds * breathRate, "breath", "breaths")
@@ -754,6 +808,28 @@ function cardViewModel(id, config, life, now) {
       countdown: seasons.length > 0
         ? "next season in " + formatCountdown(seasons[0].getTime() - now.getTime())
         : "no further occurrence"
+    }
+  }
+  if (id === "astronomicalEvents") {
+    var astronomicalEvent = nextAstronomicalEvent(metrics.astronomicalEvents.events, life, now)
+    if (!astronomicalEvent) {
+      return {
+        id: id, kind: "number", orientation: "cosmic", headline: "—",
+        label: "No future event in this horizon", detail: "Add another dated astronomical event",
+        reflection: "The sky keeps a longer calendar",
+        countdown: "no future event configured"
+      }
+    }
+    var astronomicalDate = parseLocalDate(astronomicalEvent.date)
+    var astronomicalDays = remainingCalendarDays(now, astronomicalDate)
+    var astronomicalNextDay = dayStart(now, 1)
+    return {
+      id: id, kind: "number", orientation: "cosmic", headline: groupedInteger(astronomicalDays),
+      label: astronomicalEvent.name, detail: "Next configured event · " + astronomicalEvent.date,
+      reflection: "The sky keeps a longer calendar",
+      countdown: astronomicalDays === 0
+        ? "today"
+        : "next count in " + formatCountdown(astronomicalNextDay.getTime() - now.getTime())
     }
   }
   if (id === "childhoodDays") {
@@ -815,6 +891,18 @@ function cardViewModel(id, config, life, now) {
   var recurringSpec = recurringCardSpec(id)
   if (recurringSpec) return recurringOpportunityCard(recurringSpec, metrics[id], life, now)
   return null
+}
+
+function applyCardCopy(card, metric) {
+  if (!card) return null
+  if (metric && metric.label) card.label = metric.label
+  if (metric && metric.reflection) card.reflection = metric.reflection
+  return card
+}
+
+function cardViewModel(id, config, life, now) {
+  var metric = config && config.metrics ? config.metrics[id] : null
+  return applyCardCopy(defaultCardViewModel(id, config, life, now), metric)
 }
 
 function cardDeck(config, life, now, openingSeed) {

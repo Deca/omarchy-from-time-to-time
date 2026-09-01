@@ -60,6 +60,21 @@
     "seasons": {
       "enabled": false
     },
+    "astronomicalEvents": {
+      "enabled": false,
+      "events": [
+        {
+          "name": "Total solar eclipse",
+          "date": "2027-08-02"
+        },
+        {
+          "name": "Asteroid Apophis close approach",
+          "date": "2029-04-13"
+        }
+      ],
+      "label": "",
+      "reflection": ""
+    },
     "childhoodDays": {
       "enabled": false,
       "untilDate": ""
@@ -76,7 +91,9 @@
     },
     "doomsday": {
       "enabled": false,
-      "untilDate": ""
+      "untilDate": "",
+      "label": "",
+      "reflection": ""
     },
     "parentVisits": {
       "enabled": false,

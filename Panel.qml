@@ -581,6 +581,7 @@ Panel {
                     Text {
                       width: parent.width
                       text: cardDelegate.modelData.label
+                      textFormat: Text.PlainText
                       color: root.contentForeground
                       elide: Text.ElideRight
                       font.family: root.contentFontFamily
@@ -612,6 +613,7 @@ Panel {
                     Text {
                       width: parent.width
                       text: cardDelegate.modelData.reflection
+                      textFormat: Text.PlainText
                       color: root.contentForeground
                       opacity: 0.72
                       elide: Text.ElideRight

@@ -23,6 +23,7 @@ Perspective uses five core ideas. Cards includes those metrics plus an optional,
 | Estimated breaths | Remaining horizon minutes and configured breaths/minute | A rate-based estimate, never a medical prediction. |
 | Estimated waking hours | Remaining horizon and configured sleep/day | A rough allocation rather than a promise of usable time. |
 | Family meals | Meals/week and optional shared horizon date | A simple estimate of recurring shared opportunities; it does not infer closeness or guarantee attendance. |
+| Astronomical events | User-curated names and local dates | Counts down to the nearest configured event and advances afterward; visibility and location relevance are not inferred. |
 | Childhood days | User-selected adulthood or leaving-home date | Calendar days left in a temporary shared chapter; no family milestone is inferred. |
 | Books readable | Books read in an average month and optional cutoff | A projection of the user's observed reading pace, not a target. |
 | Running sessions | Runs/week and a user-selected active cutoff | Makes the limited physical window explicit without predicting health. |

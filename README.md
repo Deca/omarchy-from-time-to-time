@@ -125,7 +125,7 @@ Set `visualization.mode` to `cards` for a configurable deck:
 
 `count` accepts any positive whole number. Fixed IDs keep their listed order. Enabled card metrics not fixed form the rotation pool; enough are selected without replacement each time the panel opens and remain in place while it is open. Rotating cards have an accent tint so they are visibly distinct from neutral fixed cards. If too few metrics are available, the panel shows fewer cards rather than duplicates or filler.
 
-The default card set is `lifeWeek`, `weekends`, `sunsets`, `christmas`, `heartbeats`, `breaths`, `wakefulHours`, and `familyMeals`; [`CARDS.md`](CARDS.md) documents the optional finite-window cards. Cards include a small live countdown to the next meaningful estimate or calendar change. Fast-changing estimates such as heartbeats and breaths count down in their own units instead of seconds. Rate-based values are estimates to a chosen horizon, not medical predictions. `familyMeals` is disabled in the example because it describes a personal relationship; enable it only when its assumptions feel useful.
+The default card set is `lifeWeek`, `weekends`, `sunsets`, `christmas`, `heartbeats`, `breaths`, `wakefulHours`, and `familyMeals`; [`CARDS.md`](CARDS.md) documents the optional finite-window cards. Cards include a small live countdown to the next meaningful estimate or calendar change. Fast-changing estimates such as heartbeats and breaths count down in their own units instead of seconds. Rate-based values are estimates to a chosen horizon, not medical predictions. `familyMeals` is disabled in the example because it describes a personal relationship; enable it only when its assumptions feel useful. `astronomicalEvents` selects the nearest future event from a static local list; it does not calculate, fetch, or update event dates.
 
 #### Managing cards
 
@@ -151,6 +151,8 @@ Each card has an `enabled` switch under `metrics`. Disabled cards cannot be fixe
 ```
 
 `familyMeals` estimates meals from now until `untilDate` at `timesPerWeek`. If `untilDate` is empty, it uses the life horizon; a date beyond the life horizon is capped there. This is a simple frequency estimate, not a promise that meals will happen. Use an explicit date when the relationship has a more meaningful shared horizon.
+
+Every metric also accepts optional `label` and `reflection` strings. These override only the card copy; empty values retain the built-in wording. Keep personal copy in `~/.config/omarchy/timeline.json` rather than editing `Model.js`. See [`CARDS.md`](CARDS.md#personalizing-card-copy) for an example.
 
 Changes reload automatically. Open the panel after changing configuration, or press `R` while focused / middle-click the bar to reload. A bad mode, non-positive or fractional card count, unknown ID, disabled fixed ID, duplicate, or excess fixed ID is ignored and shown as a configuration issue in the panel. If fewer enabled cards exist than requested slots, fewer cards are shown.
 

@@ -40,6 +40,8 @@ assert.equal(config.metrics.familyMeals.enabled, false)
 assert.equal(config.metrics.books.enabled, false)
 assert.equal(config.metrics.books.booksPerMonth, 1)
 assert.equal(config.metrics.childhoodDays.enabled, false)
+assert.equal(config.metrics.astronomicalEvents.enabled, false)
+assert.deepEqual(Array.from(config.metrics.astronomicalEvents.events), [])
 assert.equal(config.metrics.parentCalls, undefined)
 assert.equal(config.metrics.systemSessions, undefined)
 assert.equal(config.metrics.experiments, undefined)
@@ -226,6 +228,19 @@ const reflections = {
 for (const id of Object.keys(reflections))
   assert.equal(context.cardViewModel(id, relationship, life, now).reflection, reflections[id])
 
+const heartbeatCard = context.cardViewModel("heartbeats", relationship, life, now)
+const breathCard = context.cardViewModel("breaths", relationship, life, now)
+assert.equal(
+  heartbeatCard.headline,
+  context.groupedInteger(life.remainingMinutes * relationship.metrics.heartbeats.beatsPerMinute)
+)
+assert.equal(
+  breathCard.headline,
+  context.groupedInteger(life.remainingMinutes * relationship.metrics.breaths.breathsPerMinute)
+)
+assert.match(heartbeatCard.headline, /^\d{1,3}(,\d{3})+$/)
+assert.match(breathCard.headline, /^\d{1,3}(,\d{3})+$/)
+
 // Curated interest cards share recurring math while retaining explicit IDs, copy, and parameters.
 const expansionMetrics = {
   seasons: { enabled: true },
@@ -257,6 +272,49 @@ assert.equal(context.cardViewModel("runningSessions", expansion, life, now).labe
 const seasonsCard = context.cardViewModel("seasons", expansion, life, now)
 assert(seasonsCard.headline !== "0")
 assert.match(seasonsCard.countdown, /^next season in /)
+
+const astronomyConfig = parse({
+  life: { birthDate: "1990-01-01", horizonYears: 90 },
+  metrics: {
+    astronomicalEvents: {
+      enabled: true,
+      events: [
+        { name: "Later close approach", date: "2029-04-13" },
+        { name: "Past eclipse", date: "2025-03-29" },
+        { name: "Next total eclipse", date: "2027-08-02" }
+      ]
+    }
+  }
+})
+assert.deepEqual(
+  Array.from(astronomyConfig.metrics.astronomicalEvents.events, event => event.name),
+  ["Past eclipse", "Next total eclipse", "Later close approach"]
+)
+const astronomyCard = context.cardViewModel("astronomicalEvents", astronomyConfig, life, now)
+assert.equal(astronomyCard.orientation, "cosmic")
+assert.equal(astronomyCard.label, "Next total eclipse")
+assert.equal(astronomyCard.detail, "Next configured event · 2027-08-02")
+assert(Number(astronomyCard.headline.replace(/,/g, "")) > 300)
+const astronomyOnEventDay = context.cardViewModel(
+  "astronomicalEvents", astronomyConfig, life, new Date(2027, 7, 2, 12, 0))
+assert.equal(astronomyOnEventDay.headline, "0")
+assert.equal(astronomyOnEventDay.countdown, "today")
+const astronomyAfterEvent = context.cardViewModel(
+  "astronomicalEvents", astronomyConfig, life, new Date(2027, 7, 3, 12, 0))
+assert.equal(astronomyAfterEvent.label, "Later close approach")
+
+const invalidAstronomy = parse({
+  metrics: {
+    astronomicalEvents: {
+      enabled: true,
+      events: [{ name: "", date: "2030-01-01" }, { name: "Bad date", date: "tomorrow" }]
+    }
+  }
+})
+assert.equal(invalidAstronomy.metrics.astronomicalEvents.enabled, false)
+assert(invalidAstronomy._issues.some(issue => issue.includes("astronomicalEvents.events[0]")))
+assert(invalidAstronomy._issues.some(issue => issue.includes("at least one valid event")))
+
 const childhoodCard = context.cardViewModel("childhoodDays", expansion, life, now)
 assert.equal(childhoodCard.orientation, "social")
 assert.equal(childhoodCard.label, "Days before your child leaves home")
@@ -271,6 +329,32 @@ assert(Number(mobilityCard.headline.replace(/,/g, "")) > 1000)
 const doomsdayCard = context.cardViewModel("doomsday", expansion, life, now)
 assert.equal(doomsdayCard.orientation, "resilience")
 assert.equal(doomsdayCard.label, "Days until doomsday")
+
+// Personal card copy is normalized from timeline.json and layered over built-in view models.
+const customCopyConfig = parse({
+  life: { birthDate: "1990-01-01", horizonYears: 90 },
+  visualization: { mode: "cards", cards: { count: 1, fixed: ["doomsday"] } },
+  metrics: {
+    doomsday: {
+      enabled: true,
+      untilDate: "2030-01-01",
+      label: "  Days until the grid goes dark  ",
+      reflection: "  Beans, batteries, and bad decisions  "
+    }
+  }
+})
+assert.equal(customCopyConfig.metrics.doomsday.label, "Days until the grid goes dark")
+assert.equal(customCopyConfig.metrics.doomsday.reflection, "Beans, batteries, and bad decisions")
+const customDoomsdayCard = context.cardDeck(customCopyConfig, life, now, 3)[0]
+assert.equal(customDoomsdayCard.label, "Days until the grid goes dark")
+assert.equal(customDoomsdayCard.reflection, "Beans, batteries, and bad decisions")
+
+const defaultCopyConfig = parse({
+  metrics: { doomsday: { enabled: true, untilDate: "2030-01-01", label: "  ", reflection: "" } }
+})
+const defaultDoomsdayCard = context.cardViewModel("doomsday", defaultCopyConfig, life, now)
+assert.equal(defaultDoomsdayCard.label, "Days until doomsday")
+assert.equal(defaultDoomsdayCard.reflection, "Stock the bunker before the sirens.")
 
 const invalidRequired = parse({
   metrics: {
