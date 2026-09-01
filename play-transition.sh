@@ -37,6 +37,23 @@ mkdir -m 700 -- "$marker" 2>/dev/null || exit 0
 [[ -d $marker && ! -L $marker && -O $marker ]] || exit 0
 [[ $(stat -c '%a' -- "$marker" 2>/dev/null) == 700 ]] || exit 0
 
+# Keep this event and at most 63 other plugin-owned markers. rmdir only removes
+# validated empty directories and cannot follow a path replaced with a symlink.
+max_event_markers=64
+kept_markers=1
+for candidate in "$state_root"/*; do
+  candidate_name=${candidate##*/}
+  [[ $candidate != "$marker" ]] || continue
+  [[ $candidate_name =~ ^[[:xdigit:]]{64}$ ]] || continue
+  [[ -d $candidate && ! -L $candidate && -O $candidate ]] || continue
+
+  if (( kept_markers < max_event_markers )); then
+    kept_markers=$((kept_markers + 1))
+  else
+    rmdir -- "$candidate" 2>/dev/null || true
+  fi
+done
+
 minutes_for_time() {
   local value=$1 hour minute
   [[ $value =~ ^([0-9]{2}):([0-9]{2})$ ]] || return 1

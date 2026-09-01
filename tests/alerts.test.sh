@@ -52,6 +52,21 @@ XDG_RUNTIME_DIR="$temp/linked-runtime" \
 [[ $(wc -l < "$temp/calls") -eq $calls_before ]]
 [[ -z $(find "$temp/root-victim" -mindepth 1 -print -quit) ]]
 
+# Runtime marker use stays bounded while retaining the current event marker.
+for ((index = 0; index < 80; index++)); do
+  "$script" "bounded-$index" start "" "" false 22:00 07:00
+done
+marker_count=0
+for marker in "$state_root"/*; do
+  marker_name=${marker##*/}
+  if [[ $marker_name =~ ^[[:xdigit:]]{64}$ && -d $marker && ! -L $marker && -O $marker ]]; then
+    marker_count=$((marker_count + 1))
+  fi
+done
+(( marker_count == 64 ))
+last_hash=$(printf '%s' 'bounded-79' | sha256sum | awk '{print $1}')
+[[ -d $state_root/$last_hash && ! -L $state_root/$last_hash ]]
+
 # A broken or malicious sound player must not outlive the playback deadline.
 cat > "$temp/bin/pw-play" <<'PLAYER'
 #!/usr/bin/env bash
